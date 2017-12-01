@@ -87,7 +87,7 @@ else
   command = ARGV.shift
   Decko::Command.invoke command, ARGV
 
-  ARGV.shift
+
   case command
   when "--version", "-v"
     puts "Decko #{Card::Version.release}"
