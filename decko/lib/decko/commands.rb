@@ -69,13 +69,24 @@ end
 
 command = ARGV.first
 command = ALIAS[command] || command
-if supported_rails_command? command
+if supported_rails_command?(command) || true
   ENV["PRY_RESCUE_RAILS"] = "1" if ARGV.delete("--rescue")
 
   # without this, the card generators don't list with: decko g --help
   require "generators/card" if command == "generate"
-  require "rails/commands"
+  #require_relative "commands/card_command"
+  require "decko/command"
+  binding.pry
+  command = ARGV.shift
+  Decko::Command.invoke command, ARGV
+    #
+  #require "rails/command"
+  #Rails::Command.invoke command, ARGV
 else
+  require "decko/command"
+  command = ARGV.shift
+  Decko::Command.invoke command, ARGV
+
   ARGV.shift
   case command
   when "--version", "-v"
