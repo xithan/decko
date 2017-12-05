@@ -76,7 +76,6 @@ if supported_rails_command?(command) || true
   require "generators/card" if command == "generate"
   #require_relative "commands/card_command"
   require "decko/command"
-  binding.pry
   command = ARGV.shift
   Decko::Command.invoke command, ARGV
     #

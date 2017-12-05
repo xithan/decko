@@ -1,4 +1,5 @@
 require 'rails/command/environment_argument'
+require 'rails/commands/rake/rake_command'
 
 module Card
   module Command
@@ -39,9 +40,18 @@ module Card
         # RAILS_ENV needs to be set before config/application is required.
         envs.each do |env|
           ENV["RAILS_ENV"] = env
+          drop_db if options[:scratch]
+
           require_application_and_environment!
-          RakeCommand.perform("decko:seed")
+          ENV["SCHEMA"] ||= "#{Cardio.gem_root}/db/schema.rb"
+          ::Rails::Command::RakeCommand.perform "db:seed"
         end
+      end
+
+      def drop_db
+        ::Rails::Command::RakeCommand.perform("db:drop")
+      rescue
+        puts "dropped failed"
       end
     end
   end

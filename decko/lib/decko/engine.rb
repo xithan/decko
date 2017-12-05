@@ -39,7 +39,12 @@ module Decko
       # Ideally railties would do this for us; this is needed for both use cases
       Engine.paths["request_log"]   = Decko.paths["request_log"]
       Engine.paths["log"]           = Decko.paths["log"]
-      Engine.paths["lib/tasks"]     = Decko.paths["lib/tasks"]
+      # Decko.paths["lib/tasks"] is empty; Engine["lib/tasks"] has the correct paths
+      # to the decko and card tasks.
+      # When we load the environment before we load the rake tasks
+      # then we lose all decko and card tasks with the next line.
+      # (happened for example in a decko command that wanted to invoke a rake tasks)
+      # Engine.paths["lib/tasks"] = Decko.paths["lib/tasks"]
       Engine.paths["config/routes"] = Decko.paths["config/routes"]
     end
 
