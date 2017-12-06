@@ -1,0 +1,11 @@
+Usage: decko rspec [DECKO ARGS] -- [RSPEC ARGS]
+
+RSPEC ARGS
+
+DECKO ARGS
+
+You don't have to give a full path for FILENAME, the basename is enough
+  If FILENAME does not include '_spec' rspec searches for the
+  corresponding spec file.
+  The line number always referes to example in the (corresponding) spec
+  file.
