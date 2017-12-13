@@ -1,7 +1,7 @@
 require 'rails/command/environment_argument'
 require 'rails/commands/rake/rake_command'
 
-module Card
+class Card
   module Command
     class SeedCommand < ::Rails::Command::Base
       include ::Rails::Command::EnvironmentArgument
@@ -48,10 +48,12 @@ module Card
         end
       end
 
-      def drop_db
-        ::Rails::Command::RakeCommand.perform("db:drop")
-      rescue
-        puts "dropped failed"
+      no_commands do
+        def drop_db
+          ::Rails::Command::RakeCommand.perform("db:drop")
+        rescue
+          puts "dropped failed"
+        end
       end
     end
   end

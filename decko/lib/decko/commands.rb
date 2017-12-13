@@ -103,7 +103,7 @@ else
    new         Create a new Decko deck. "decko new my_deck" creates a
                new deck called MyDeck in "./my_deck"
    seed        Create and seed the database specified in config/database.yml
-
+   update      Run card migrations
    server      Start the Rails server (short-cut alias: "s")
    console     Start the Rails console (short-cut alias: "c")
    dbconsole   Start a console for the database specified in config/database.yml
@@ -112,7 +112,7 @@ else
   For core developers
    cucumber     Run cucumber features (short-cut alias: "cc")
    rspec        Run rspec tests (short-cut alias: "rs")
-   update       Run card migrations
+   
    load         Load bootstrap data into database
 
   In addition to those, there are the standard rails commands:

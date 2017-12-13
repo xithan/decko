@@ -1,9 +1,9 @@
 require 'rails/command/environment_argument'
 require 'rails/commands/rake/rake_command'
 
-module Card
+class Card
   module Command
-    class MigrateCommand < ::Rails::Command::Base
+    class MigrateCommand < Base
       class_option :environment, aliases: "-e", type: :string,
                    desc: "Specifies the database to migrate to (test/development/production)."
 
@@ -32,9 +32,9 @@ module Card
         ENV["RAILS_ENV"] = options[:environment]
         options[:stamp] = true if ENV["STAMP_MIGRATIONS"]
 
-        ActiveRecord::Migration.verbose = options[:verbose]
-
         require_application_and_environment!
+        require_dependency "card"
+        ActiveRecord::Migration.verbose = options[:verbose]
         run_migrations
       end
 
@@ -62,7 +62,7 @@ module Card
 
       def structure
         run_migration :structure do
-          Rake::Task["db:_dump"].invoke # write schema.rb
+          ::Rails::Command::RakeCommand.perform "db:_dump" # write schema.rb
         end
       end
 

@@ -7,8 +7,31 @@ require "active_support/core_ext/hash/transform_values"
 require "thor"
 
 require "rails/command"
+require "card/command/base"
 #require "rails"
 #require "railties/rails/command/base"
+
+module Rails
+  module Command
+    class << self
+      def sorted_groups # :nodoc:
+        lookup!
+
+        groups = (subclasses - hidden_commands).group_by { |c| c.namespace.split(":").first }
+        groups.transform_values! { |commands| commands.flat_map(&:printing_commands).sort }
+
+        rails = groups.delete("rails")
+        card =  groups.delete("card")
+        [[ "card", card ], [ "rails", rails ]] + groups.sort.to_a
+      end
+
+      private
+      def lookup_paths # :doc:
+        @lookup_paths ||= %w( card/commands commands rails/commands )
+      end
+    end
+  end
+end
 
 module Decko
   module Command
@@ -20,6 +43,9 @@ module Decko
     #autoload :Rails::Command::Base
 
     HELP_MAPPINGS = %w(-h -? --help)
+
+    RAILS_COMMANDS = %w( generate destroy plugin benchmarker profiler console
+                         server dbconsole application runner ).freeze
 
     class << self
       def hidden_commands # :nodoc:
@@ -66,9 +92,12 @@ module Decko
       # Rails looks for is the first and last parts of the namespace.
       def find_by_namespace(namespace, command_name = nil) # :nodoc:
         lookups = [ namespace ]
+        # unless RAILS_COMMANDS.include? namespace
+        #   @lookup_paths = ["commands"]
+        # end
         lookups << "#{namespace}:#{command_name}" if command_name
         lookups.concat(lookups.map do |lookup|
-          ["rails:#{lookup}", "card:#{lookup}", "decko:#{lookup}"]
+          ["card:#{lookup}", "decko:#{lookup}", "rails:#{lookup}"]
         end.flatten)
         #lookupa.concat "card/li
 
@@ -98,7 +127,8 @@ module Decko
         groups.transform_values! { |commands| commands.flat_map(&:printing_commands).sort }
 
         rails = groups.delete("rails")
-        [[ "rails", rails ]] + groups.sort.to_a
+        card =  groups.delete("card")
+        [[ "card", card ], [ "rails", rails ]] + groups.sort.to_a
       end
 
       private
@@ -107,7 +137,7 @@ module Decko
         end
 
         def lookup_paths # :doc:
-          @lookup_paths ||= %w( rails/commands commands )
+          @lookup_paths ||= %w( card/commands commands rails/commands )
         end
 
         def file_lookup_paths # :doc:
