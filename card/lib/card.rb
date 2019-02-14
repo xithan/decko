@@ -93,10 +93,12 @@ ActiveSupport.run_load_hooks(:before_card, self)
 # You can see the current user with `Card::Auth.current`. The permissions of a proxy user can be temporarily assumed using `Card::Auth#as`.
 #
 # {Card::Auth More on accounts}
-#
+
 class Card < ApplicationRecord
   require_dependency "card/mark"
+  require_dependency "card/proxy"
   extend Mark
+  extend Proxifier
 
   require_dependency "card/name"
   require_dependency "card/codename"

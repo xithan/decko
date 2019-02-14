@@ -19,6 +19,8 @@ class Card
         else
           pass_method_to_template_object(method, opts, proc) { yield }
         end
+      rescue NoMethodError => _e
+        super
       end
 
       def api_render match, opts
