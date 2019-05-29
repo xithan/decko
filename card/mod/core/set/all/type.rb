@@ -3,6 +3,11 @@ module ClassMethods
   def default_type_id
     @@default_type_id ||= Card[:all].fetch(trait: :default, skip_modules: true).type_id
   end
+
+  def default_category_id
+    @@default_category_id ||=
+      Card[:all].fetch(trait: :default, skip_modules: true).category_id
+  end
 end
 
 def type_card

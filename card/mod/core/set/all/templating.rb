@@ -29,15 +29,23 @@ def default_type_id default_card=nil
   default_card ? default_card.type_id : Card.default_type_id
 end
 
+def default_category_id default_card=nil
+  default_card ? default_card.category_id : Card.default_category_id
+end
+
 def new_card_template
   default = rule_card :default, skip_modules: true
 
   dup_card = dup
   dup_card.type_id = default_type_id default
+  dup_card.category_id = default_category_id default
 
   if (structure = dup_card.structure_rule_card)
     @virtual = true if junction?
-    self.type_id = structure.type_id if assign_type_to?(structure)
+    if assign_type_to?(structure)
+      self.type_id = structure.type_id
+      self.category_id = structure.category_id
+    end
     structure
   else
     default
@@ -58,6 +66,8 @@ def assigns_type?
 
   set_class.assigns_type
 end
+
+delegate :assigns_category?, to: :assigns_type?
 
 def structure
   return unless template && template.is_structure?

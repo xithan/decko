@@ -32,8 +32,13 @@ event :reset_cache_to_use_new_structure,
 end
 
 event :update_structurees_type, :finalize,
-      changed: :type_id, when: proc { |c| c.assigns_type? } do
+      changed: :type_id, when: :assigns_type? do
   update_structurees type_id: type_id
+end
+
+event :update_structurees_category, :finalize,
+      changed: :category_id, when: :assigns_category?  do
+  update_structurees category_id: category_id
 end
 
 def structuree_names

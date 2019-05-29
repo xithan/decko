@@ -82,7 +82,7 @@ es:
           built_in: "Diseños incorporados: %{built_in_layouts}"
       set:
         all:
-          codename: 
+          codename:
             only_admins_codename: solo los administradores pueden establecer el nombre clave
             error_code_in_use: nombre clave %{codename} ya esta en uso
           event:
@@ -134,6 +134,10 @@ es:
             error_cant_change_errors: "de %{name} no se puede cambiar; creando nuevos errores %{type_id}: %{error_messages}"
             error_no_such_type: No hay tal tipo
             error_hard_templated: no se puede cambiar porque %{name} es una plantilla dificil de %{type_name}
+          category:
+            error_cant_change_errors: "de %{name} no se puede cambiar; creando nuevos errores %{category_id}: %{error_messages}"
+            error_no_such_category: No hay tal categoría
+            error_hard_templated: no se puede cambiar porque %{name} es una plantilla dificil de %{category_name}
           utils:
             exception_almost_deleted: Se evitó de forma muy estrecha eliminar el archivo actual
       set_pattern:
@@ -199,7 +203,7 @@ es:
           json:
             invalid_json: invalid json
     :bootstrap:
-      set: 
+      set:
         type:
             customized_bootswatch_skin:
               not_valid_theme: no es un tema valido %{theme_name}
@@ -232,7 +236,7 @@ es:
         abstract:
           permission:
             search_roles_by_name: Roles por Nombre
-            use_lefts_rule: Usar la regla %{tag} 
+            use_lefts_rule: Usar la regla %{tag}
             groups: Grupos
             individuals: Individuos
             inherit_links: Heredar ( %{links} )

@@ -23,8 +23,13 @@ class Card
       class Abstract
         class << self
           attr_accessor :pattern_code, :pattern_id, :junction_only,
-                        :assigns_type, :anchorless
+                        :assigns_type,  # a structure rule of this set pattern defines the
+                                        # type and category of the set members
+
+                        :anchorless
           attr_writer :anchor_parts_count
+
+          delegate :assigns_category, to: :assigns_type
 
           def new card
             super if pattern_applies? card

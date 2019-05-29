@@ -135,6 +135,10 @@ en:
             error_cant_change_errors: "of %{name} can't be changed; errors creating new %{type_id}: %{error_messages}"
             error_no_such_type: No such type
             error_hard_templated: can't be changed because %{name} is hard templated to %{type_name}
+          category:
+            error_cant_change_errors: "of %{name} can't be changed; errors creating new %{category_id}: %{error_messages}"
+            error_no_such_category: No such category
+            error_hard_templated: can't be changed because %{name} is hard templated to %{category_name}
           utils:
             exception_almost_deleted: Narrowly averted deleting current file
       set_pattern:

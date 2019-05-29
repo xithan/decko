@@ -22,8 +22,8 @@ class Card
 
       CONDITION_OPTIONS = {
         on: %i[create update delete save read],
-        changed: %i[name content db_content type type_id codename key],
-        changing: %i[name content db_content type type_id codename key],
+        changed: %i[name content db_content type type_id category_id codename key],
+        changing: %i[name content db_content type type_id category_id codename key],
         skip: :allowed,
         trigger: :required  # the event is only executed if triggered explicitly with
         # trigger: [event_name]
