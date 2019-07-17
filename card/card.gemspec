@@ -48,6 +48,7 @@ Gem::Specification.new do |s|
     # files and images
     #    ["carrierwave",                "~> 1.1"],
     ["carrierwave",                 "1.2.2"],
+    ["fog",                           "2.1"], # can be removed after carrierwave upgrade
     ["mini_magick",                "~> 4.2"],
 
     # assets (JavaScript, CSS, etc)
@@ -69,7 +70,8 @@ Gem::Specification.new do |s|
     ["rake",                       "<= 12.3.0"],
     # ["bootswatch", "4.1.1"],
     ["rails", "~> 5.2.2.1"], # routing breaks for :, *, and ~ in 5.2.3
-    ["activerecord-import", "~> 1.0"]
+    ["activerecord-import", "~> 1.0"],
+    ["card-mod-markdown", "~> 0.3"]
   ].each do |dep|
     s.add_runtime_dependency(*dep)
   end

@@ -5,7 +5,7 @@ class Card
         Chunk.register_class(
           self,
           prefix_re: Regexp.escape("(stub)"),
-          full_re: /\(stub\)([^\(]*)\(\/stub\)/,
+          full_re: /\A\(stub\)([^\(]*)\(\/stub\)/,
           idx_char: "("
         )
 
@@ -42,7 +42,7 @@ class Card
         end
 
         def process_chunk
-          @processed = yield @stub_hash
+          @processed = format.stub_nest @stub_hash
         end
 
         def result

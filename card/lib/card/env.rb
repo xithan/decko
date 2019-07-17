@@ -47,12 +47,20 @@ class Card
           opts = params[:slot]&.clone || {}
           opts = opts.to_unsafe_h if opts.is_a? ActionController::Parameters
           opts.merge! shortcut_slot_opts
-          opts.deep_symbolize_keys
+          opts.deep_symbolize_keys.slice(*Card::View::Options.slot_keys)
         end
       end
 
       def session
         self[:session] ||= {}
+      end
+
+      def reset_session
+        if session.is_a? Hash
+          self[:session] = {}
+        else
+          self[:controller]&.reset_session
+        end
       end
 
       def success cardname=nil

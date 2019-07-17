@@ -11,7 +11,7 @@ class Card
         DEFAULT_OPTION = :view # a value without a key is interpreted as view
 
         Chunk.register_class(self, prefix_re: '\\{\\{',
-                                   full_re:    /^\{\{([^\}]*)\}\}/,
+                                   full_re:    /\A\{\{([^\}]*)\}\}/,
                                    idx_char:  "{")
 
         def interpret match, _content
@@ -72,7 +72,7 @@ class Card
           return @process_chunk if @process_chunk
 
           referee_name
-          @processed = yield @options
+          @processed = format.content_nest(@options)
           # this is not necessarily text, sometimes objects for json
         end
 
@@ -98,6 +98,12 @@ class Card
 
         def nest_name
           options&.dig :nest_name
+        end
+
+        def self.gsub string
+          string.gsub(/\{\{([^\}]*)\}\}/) do |_match|
+            yield(Regexp.last_match[1])
+          end
         end
 
         private

@@ -10922,7 +10922,7 @@ return jQuery;
 
 //script: decko
 (function() {
-  var addModalDialogClasses, addSelectedButton, addSelectedButtonUrl, arrayFromField, checkName, checkNameAfterTyping, containerClass, deselectAllLink, detectMobileBrowser, doubleClickActive, doubleClickActiveMap, doubleClickApplies, doubleSidebar, filterBox, formatNavboxItem, formatNavboxSelectedItem, navboxItem, navboxSelect, navboxize, nestNameTimeout, newFilteredListContent, openModalIfPresent, prefilteredData, prefilteredIds, prefilteredNames, selectFilteredItem, selectedBin, selectedData, selectedIds, selectedNames, sidebarToggle, singleSidebar, snakeCase, submitAfterTyping, toggleButton, trackSelectedIds, triggerDoubleClickEditingOn, updateAfterSelection, updateSelectedCount, updateSelectedSectionVisibility, updateUnselectedCount, warn, weirdoSelect2FilterBreaker, wrapDeckoLayout, wrapSidebarToggle;
+  var addModalDialogClasses, addSelectedButton, addSelectedButtonUrl, arrayFromField, checkName, checkNameAfterTyping, containerClass, deselectAllLink, detectMobileBrowser, doubleClickActive, doubleClickActiveMap, doubleClickApplies, doubleSidebar, filterBox, formatNavboxItem, formatNavboxSelectedItem, navboxItem, navboxSelect, navboxize, nestNameTimeout, newFilteredListContent, openModalIfPresent, prefilteredData, prefilteredIds, prefilteredNames, selectFilteredItem, selectedBin, selectedData, selectedIds, selectedNames, sidebarToggle, singleSidebar, snakeCase, submitAfterTyping, toggleButton, trackSelectedIds, triggerDoubleClickEditingOn, updateAfterSelection, updateSelectedCount, updateSelectedSectionVisibility, updateUnselectedCount, warn, wrapDeckoLayout, wrapSidebarToggle;
 
   window.decko || (window.decko = {});
 
@@ -11054,7 +11054,9 @@ return jQuery;
   });
 
   $(window).ready(function() {
-    decko.initializeEditors($('body > :not(.modal)'));
+    setTimeout((function() {
+      return decko.initializeEditors($('body > :not(.modal)'));
+    }), 10);
     return $('body').on('submit', '.card-form', function() {
       $(this).setContentFieldsFromMap();
       $(this).find('.d0-card-content').attr('no-autosave', 'true');
@@ -11148,6 +11150,9 @@ return jQuery;
       } else {
         id = slot.data('cardId');
         reportee = '';
+      }
+      if (!id) {
+        return;
       }
       submit_url = decko.path('update/~' + id);
       form_data = $('#edit_card_' + id).serializeArray().reduce((function(obj, item) {
@@ -11747,6 +11752,7 @@ return jQuery;
         return this.addModal(el, $slotter);
       } else {
         if ($("body > ._modal-slot")[0]) {
+          $("._modal-slot").trigger("slotDestroy");
           $("body > ._modal-slot").replaceWith(el);
         } else {
           $("body").append(el);
@@ -11760,6 +11766,7 @@ return jQuery;
       if ($slotter.data("slotter-mode") === "modal-replace") {
         dialog = el.find(".modal-dialog");
         el.adoptModalOrigin();
+        $("._modal-slot").trigger("slotDestroy");
         $("body > ._modal-slot > .modal-dialog").replaceWith(dialog);
         return decko.contentLoaded(dialog, $slotter);
       } else {
@@ -11980,6 +11987,9 @@ return jQuery;
       if (event.slotSuccessful) {
         return;
       }
+      if (this.data("reload")) {
+        window.locacation.reload(true);
+      }
       if (this.data("update-origin")) {
         this.updateOrigin();
       }
@@ -12009,6 +12019,8 @@ return jQuery;
         return this.updateOrigin();
       } else if (data.redirect) {
         return window.location = data.redirect;
+      } else if (data.reload) {
+        return window.location.reload(true);
       } else {
         return this.updateSlot(data, mode);
       }
@@ -12512,7 +12524,7 @@ return jQuery;
         return submitAfterTyping = null;
       }, 1000);
     });
-    return $('body').on("keydown", "._submit-after-typing", function(event) {
+    $('body').on("keydown", "._submit-after-typing", function(event) {
       if (event.which === 13) {
         if (submitAfterTyping) {
           clearTimeout(submitAfterTyping);
@@ -12521,6 +12533,21 @@ return jQuery;
         $(event.target).closest('form').submit();
         return false;
       }
+    });
+    $('body').on("change", "._submit-on-change", function(event) {
+      $(event.target).closest('form').submit();
+      return false;
+    });
+    return $('body').on("change", "._edit-item", function(event) {
+      var cb;
+      cb = $(event.target);
+      if (cb.is(":checked")) {
+        cb.attr("name", "add_item");
+      } else {
+        cb.attr("name", "drop_item");
+      }
+      $(event.target).closest('form').submit();
+      return false;
     });
   });
 
@@ -12597,17 +12624,24 @@ return jQuery;
     $('body').on('mouseleave', '[hover_content]', function() {
       return $(this).html($(this).attr('hover_restore'));
     });
-    $('body').on('click', '.render-error-link', function(event) {
+    return $('body').on('click', '.render-error-link', function(event) {
       var msg;
       msg = $(this).closest('.render-error').find('.render-error-message');
       msg.show();
       return event.preventDefault();
     });
-    return $('card-view-placeholder').each(function() {
-      var $this;
-      $this = $(this);
-      return $.get($this.data("url"), function(data, status) {
-        return $this.replaceWith(data);
+  });
+
+  decko.slotReady(function(slot) {
+    return slot.find('card-view-placeholder').each(function() {
+      var $place;
+      $place = $(this);
+      if ($place.data("loading")) {
+        return;
+      }
+      $place.data("loading", true);
+      return $.get($place.data("url"), function(data, _status) {
+        return $place.replaceWith(data);
       });
     });
   });
@@ -12682,80 +12716,15 @@ return jQuery;
     }
   });
 
-  decko.slotReady(function(slot) {
-    return slot.find("._filter-widget").each(function() {
-      var filter;
-      if (slot[0] === $(this).slot()[0]) {
-        filter = new decko.filter(this);
-        return filter.showWithStatus("active");
-      }
-    });
-  });
-
-  $(window).ready(function() {
-    var filterFor, keyupTimeout, onchangers;
-    filterFor = function(el) {
-      return new decko.filter(el);
-    };
-    $("body").on("click", "._filter-category-select", function(e) {
-      e.preventDefault();
-      return filterFor(this).activate($(this).data("category"));
-    });
-    onchangers = "._filter-input input:not(.simple-text), " + "._filter-input select, ._filter-sort";
-    $("body").on("change", onchangers, function() {
-      if (weirdoSelect2FilterBreaker(this)) {
-        return;
-      }
-      return filterFor(this).update();
-    });
-    keyupTimeout = null;
-    $("body").on("keyup", "._filter-input input.simple-text", function() {
-      var filter;
-      clearTimeout(keyupTimeout);
-      filter = filterFor(this);
-      return keyupTimeout = setTimeout((function() {
-        return filter.update();
-      }), 333);
-    });
-    $("body").on("click", "._delete-filter-input", function() {
-      var filter;
-      filter = filterFor(this);
-      filter.removeField($(this).closest("._filter-input").data("category"));
-      return filter.update();
-    });
-    $('body').on('click', '._reset-filter', function() {
-      var f;
-      f = filterFor(this);
-      f.reset();
-      return f.update();
-    });
-    $('body').on('click', '.filtering .filterable', function(e) {
-      var data, f;
-      f = filterFor($("._filter-widget:visible"));
-      if (f.widget.length > 0) {
-        data = $(this).data("filter");
-        f.restrict(data["key"], data["value"]);
-      }
-      return e.preventDefault();
-    });
-    return $('body').on('click', '._record-filter', function(e) {
-      var data, f;
-      f = filterFor($("._filter-widget:visible"));
-      f.removeField("year");
-      data = $(this).data("filter");
-      return f.restrict(data["key"], data["value"]);
-    });
-  });
-
-  weirdoSelect2FilterBreaker = function(el) {
-    return $(el).hasClass("select2-search__field");
-  };
-
   decko.filter = function(el) {
-    this.widget = $(el).closest("._filter-widget");
+    var closest_widget;
+    closest_widget = $(el).closest("._filter-widget");
+    this.widget = closest_widget[0] != null ? closest_widget : $(el).closest("._filtered-content").find("._filter-widget");
     this.activeContainer = this.widget.find("._filter-container");
     this.dropdown = this.widget.find("._add-filter-dropdown");
     this.dropdownItems = this.widget.find("._filter-category-select");
+    this.form = this.widget.find("._filter-form");
+    this.quickFilter = this.widget.find("._quick-filter");
     this.showWithStatus = function(status) {
       var f;
       f = this;
@@ -12768,11 +12737,15 @@ return jQuery;
       });
     };
     this.reset = function() {
-      this.activeContainer.find(".input-group").remove();
+      this.clear();
+      this.dropdownItems.show();
       return this.showWithStatus("default");
     };
-    this.activate = function(category) {
-      this.activateField(category);
+    this.clear = function() {
+      return this.activeContainer.find(".input-group").remove();
+    };
+    this.activate = function(category, value) {
+      this.activateField(category, value);
       return this.hideOption(category);
     };
     this.showOption = function(category) {
@@ -12794,12 +12767,36 @@ return jQuery;
     this.findPrototype = function(category) {
       return this.widget.find("._filter-input-field-prototypes ._filter-input-" + category);
     };
-    this.activateField = function(category) {
+    this.activateField = function(category, value) {
       var field;
       field = this.findPrototype(category).clone();
+      this.fieldValue(field, value);
       this.dropdown.before(field);
       this.initField(field);
       return field.find("input, select").first().focus();
+    };
+    this.fieldValue = function(field, value) {
+      if (typeof value === "object") {
+        return this.compoundFieldValue(field, value);
+      } else {
+        return this.simpleFieldValue(field, value);
+      }
+    };
+    this.simpleFieldValue = function(field, value) {
+      var input;
+      input = field.find("input, select");
+      if (value) {
+        return input.val(value);
+      }
+    };
+    this.compoundFieldValue = function(field, vals) {
+      var input, key, results1;
+      results1 = [];
+      for (key in vals) {
+        input = field.find("#filter_value_" + key);
+        results1.push(input.val(vals[key]));
+      }
+      return results1;
     };
     this.removeField = function(category) {
       this.activeField(category).remove();
@@ -12820,20 +12817,28 @@ return jQuery;
       return this.activeContainer.find("._filter-input-" + category);
     };
     this.isActive = function(category) {
-      return this.activeField(category).length > 0;
+      return this.activeField(category).exists();
     };
-    this.restrict = function(category, value) {
-      var field;
-      if (!this.isActive(category)) {
-        this.activate(category);
+    this.restrict = function(data) {
+      var key;
+      this.clear();
+      for (key in data) {
+        this.activateField(key, data[key]);
       }
-      field = this.activeField(category);
-      return this.setInputVal(field, value);
+      return this.update();
+    };
+    this.addRestrictions = function(hash) {
+      var category;
+      for (category in hash) {
+        this.removeField(category);
+        this.activate(category, hash[category]);
+      }
+      return this.update();
     };
     this.setInputVal = function(field, value) {
       var select;
       select = field.find("select");
-      if (select.length > 0) {
+      if (select.exists()) {
         return this.setSelect2Val(select, value);
       } else {
         return this.setTextInputVal(field.find("input"), value);
@@ -12849,11 +12854,144 @@ return jQuery;
       input.val(value);
       return this.update();
     };
+    this.updateLastVals = function() {
+      return this.activeFields().find("input, select").each(function() {
+        return $(this).data("lastVal", $(this).val());
+      });
+    };
+    this.updateUrlBar = function() {
+      if (this.widget.closest('._noFilterUrlUpdates')[0]) {
+        return;
+      }
+      return window.history.pushState("filter", "filter", '?' + this.form.serialize());
+    };
     this.update = function() {
-      return this.widget.find("._filter-form").submit();
+      this.updateLastVals();
+      this.updateQuickLinks();
+      this.form.submit();
+      return this.updateUrlBar();
+    };
+    this.updateQuickLinks = function() {
+      var links, widget;
+      widget = this;
+      links = this.quickFilter.find("a");
+      links.addClass("active");
+      return links.each(function() {
+        var key, link, opts, results1;
+        link = $(this);
+        opts = link.data("filter");
+        results1 = [];
+        for (key in opts) {
+          results1.push(widget.deactivateQuickLink(link, key, opts[key]));
+        }
+        return results1;
+      });
+    };
+    this.deactivateQuickLink = function(link, key, value) {
+      var sel;
+      sel = "._filter-input-" + key;
+      return $.map([this.form.find(sel + " input, " + sel + " select").val()], function(arr) {
+        if ($.inArray(value, arr) > -1) {
+          return link.removeClass("active");
+        }
+      });
+    };
+    this.updateIfChanged = function() {
+      if (this.changedSinceLastVal()) {
+        return this.update();
+      }
+    };
+    this.changedSinceLastVal = function() {
+      var changed;
+      changed = false;
+      this.activeFields().find("input, select").each(function() {
+        if ($(this).val() !== $(this).data("lastVal")) {
+          return changed = true;
+        }
+      });
+      return changed;
     };
     return this;
   };
+
+  decko.slotReady(function(slot) {
+    return slot.find("._filter-widget").each(function() {
+      var filter;
+      if (slot[0] === $(this).slot()[0]) {
+        filter = new decko.filter(this);
+        filter.showWithStatus("active");
+        filter.updateLastVals();
+        return filter.updateQuickLinks();
+      }
+    });
+  });
+
+  $(window).ready(function() {
+    var filterFor, filterableData, keyupTimeout, onchangers, targetFilter, weirdoSelect2FilterBreaker;
+    filterFor = function(el) {
+      return new decko.filter(el);
+    };
+    weirdoSelect2FilterBreaker = function(el) {
+      return $(el).hasClass("select2-search__field");
+    };
+    filterableData = function(filterable) {
+      var f;
+      f = $(filterable);
+      return f.data("filter") || f.find("._filterable").data("filter");
+    };
+    targetFilter = function(filterable) {
+      var selector;
+      selector = $(filterable).closest("._filtering").data("filter-selector");
+      return filterFor(selector || this);
+    };
+    $("body").on("click", "._filter-category-select", function(e) {
+      e.preventDefault();
+      return filterFor(this).activate($(this).data("category"));
+    });
+    onchangers = "._filter-input input:not(.simple-text), " + "._filter-input select, ._filter-sort";
+    $("body").on("change", onchangers, function() {
+      if (weirdoSelect2FilterBreaker(this)) {
+        return;
+      }
+      return filterFor(this).update();
+    });
+    keyupTimeout = null;
+    $("body").on("keyup", "._filter-input input.simple-text", function() {
+      var filter;
+      clearTimeout(keyupTimeout);
+      filter = filterFor(this);
+      return keyupTimeout = setTimeout((function() {
+        return filter.updateIfChanged();
+      }), 333);
+    });
+    $("body").on("click", "._delete-filter-input", function() {
+      var filter;
+      filter = filterFor(this);
+      filter.removeField($(this).closest("._filter-input").data("category"));
+      return filter.update();
+    });
+    $('body').on('click', '._reset-filter', function() {
+      var f;
+      f = filterFor(this);
+      f.reset();
+      return f.update();
+    });
+    $('body').on('click', '._filtering ._filterable', function(e) {
+      var f;
+      f = targetFilter(this);
+      if (f.widget.exists()) {
+        f.restrict(filterableData(this));
+      }
+      e.preventDefault();
+      return e.stopPropagation();
+    });
+    return $('body').on('click', '._quick-filter a, ._filter-link', function(e) {
+      var f;
+      f = filterFor(this);
+      f.addRestrictions($(this).data("filter"));
+      return e.preventDefault();
+    });
+  });
 
   $(window).ready(function() {
     $("body").on("click", "._filter-items ._add-selected", function() {

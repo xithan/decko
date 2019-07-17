@@ -1,4 +1,3 @@
-
 format :html do
   view :raw do
     wrap_with :div, class: "form-group w-100" do
@@ -18,7 +17,8 @@ format :html do
   end
 
   view :navbar do
-    class_up "navbox-form", "form-inline col-md-6"
+    # FIXME: not bootstrap class here.
+    class_up "navbox-form", "form-inline"
     _render_core
   end
 

@@ -23,7 +23,7 @@ format :html do
 
   def missing_link text
     path_opts = voo.type ? { card: { type: voo.type } } : {}
-    link_to_view :new, text, path: path_opts, class: "missing-link"
+    link_to_view :new, text, path: path_opts, class: classy("missing-link")
   end
 
   view :closed_missing, perms: :none do
@@ -150,14 +150,15 @@ format :html do
   end
 
   def signin_link
-    link_to_card :signin, tr(:sign_in), remote: true, class: "slotter"
+    link_to_card :signin, tr(:sign_in),
+                 class: "signin-link", slotter: true, path: { view: :open }
   end
 
   def signup_link
     return unless signup_ok?
 
-    link_to tr(:sign_up), path: { action: :new, mark: :signup },
-                              remote: true, class: "slotter"
+    link_to_card :signup, tr(:sign_up),
+                 class: "signup-link", slotter: true, path: { action: :new }
   end
 
   def signup_ok?

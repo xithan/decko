@@ -8,8 +8,8 @@ module Card::Content::Chunk
     attr_reader :link_text
     # Groups: $1, [$2]: [[$1]] or [[$1|$2]] or $3, $4: [$3][$4]
     Card::Content::Chunk.register_class self,
-                                        prefix_re: '\\[',
-                                        full_re:   /^\[\[([^\]]+)\]\]/,
+                                        prefix_re: '\\[\\[',
+                                        full_re:   /\A\[\[([^\]]+)\]\]/,
                                         idx_char:  "["
     def reference_code
       CODE
@@ -59,14 +59,14 @@ module Card::Content::Chunk
       end
     end
 
-    def render_link
+    def render_link view: :link, explicit_link_opts: {}
       @link_text = render_obj @link_text
 
       if @explicit_link
         @explicit_link = render_obj @explicit_link
-        format.link_to_resource @explicit_link, @link_text
+        format.link_to_resource @explicit_link, @link_text, explicit_link_opts
       elsif @name
-        format.nest referee_name, options.merge(view: :link)
+        format.nest referee_name, options.merge(view: view)
       end
     end
 
@@ -102,6 +102,10 @@ module Card::Content::Chunk
       elsif @link_text.present?
         @link_text = old_name.to_name.sub_in(@link_text, with: new_name)
       end
+    end
+
+    def explicit_link?
+      @explicit_link
     end
   end
 end

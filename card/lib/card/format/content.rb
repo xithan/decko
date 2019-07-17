@@ -1,13 +1,19 @@
 class Card
   class Format
     module Content
-      def process_content override_content=nil, content_opts=nil
-        content = override_content || render_raw || ""
-        content_object = get_content_object content, content_opts
-        content_object.process_each_chunk do |chunk_opts|
-          content_nest chunk_opts
-        end
-        content_object.to_s
+      def process_content override_content=nil, content_opts=nil, &block
+        content_obj = content_object override_content , content_opts
+        content_obj.process_chunks(&block)
+        content_obj.to_s
+      end
+
+      # Preserves the syntax in all nests. The content is yielded with placeholders
+      # for all nests. After executing the given block the original nests are put back in.
+      # Placeholders are numbers in double curly brackets like {{2}}.
+      def safe_process_content override_content=nil, content_opts=nil, &block
+        content_obj = content_object override_content, chunk_list: :nest_only
+        result = content_obj.without_nests(&block)
+        process_content result, content_opts
       end
 
       # nested by another card's content
@@ -69,13 +75,14 @@ class Card
 
       private
 
-      def get_content_object content, content_opts
-        if content.is_a? Card::Content
-          content
-        else
-          Card::Content.new content, self, (content_opts || voo&.content_opts)
-        end
+      def content_object content=nil, content_opts=voo&.content_opts
+        return content if content.is_a? Card::Content
+
+        content ||= render_raw || ""
+        Card::Content.new content, self, content_opts
       end
+
+
     end
   end
 end

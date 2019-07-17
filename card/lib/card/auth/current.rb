@@ -32,7 +32,7 @@ class Card
 
       # set the id of the current user.
       def current_id= card_id
-        @current = @as_id = @as_card = nil
+        @current = @as_id = @as_card = @current_roles = nil
         card_id = card_id.to_i if card_id.present?
         @current_id = card_id
       end
@@ -47,6 +47,15 @@ class Card
           else
             mark
           end
+      end
+
+      def current_roles
+        @current_roles ||= [Card.fetch_name(:anyone_signed_in),
+                            current.fetch(trait: :roles)&.item_names].flatten.compact
+      end
+
+      def clear_current_roles
+        @current_roles = nil
       end
 
       def serialize
@@ -68,6 +77,7 @@ class Card
         tmp_as_id = as_id
         tmp_current = @current
         tmp_as_card = @as_card
+        tmp_current_roles = @current_roles
 
         # resets @as and @as_card
         self.current_id = auth_data[:current_id]
@@ -78,6 +88,7 @@ class Card
         @as_id = tmp_as_id
         @current = tmp_current
         @as_card = tmp_as_card
+        @current_roles = tmp_current_roles
       end
 
       # get session object from Env
