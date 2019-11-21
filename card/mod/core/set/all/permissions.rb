@@ -30,7 +30,7 @@ end
 
 def ok_with_fetch? action, opts={}
   card = opts[:trait].nil? ? self : fetch(opts)
-  card && card.ok_without_fetch?(action)
+  card&.ok_without_fetch?(action)
 end
 
 # note: method is chained so that we can return the instance variable @action_ok
@@ -77,9 +77,7 @@ end
 
 def left_permission_rule_id action
   lcard = left_or_new(skip_virtual: true, skip_modules: true)
-  if action == :create && lcard.real? && lcard.action != :create
-    action = :update
-  end
+  action = :update if action == :create && lcard.real? && lcard.action != :create
   lcard.permission_rule_id action
 end
 
@@ -89,6 +87,7 @@ end
 
 def require_permission_rule! rule_id, action
   return if rule_id
+
   # RULE missing.  should not be possible.
   # generalize this to handling of all required rules
   errors.add :permission_denied, tr(:error_no_action_rule, action: action, name: name)
@@ -120,6 +119,7 @@ def permit action, verb=nil
   deny_because "Currently in read-only mode" if Card.config.read_only
 
   return if permitted? action
+
   verb ||= action.to_s
   deny_because you_cant("#{verb} #{name.present? ? name : 'this'}")
 end
@@ -131,19 +131,21 @@ def ok_to_create
   %i[left right].each do |side|
     # left is supercard; create permissions will get checked there.
     next if side == :left && superleft
+
     part_card = send side, new: {}
     # if no card, there must be other errors
-    next unless part_card && part_card.new_card?
-    unless part_card.ok? :create
-      deny_because you_cant("create #{part_card.name}")
-    end
+    next unless part_card&.new_card?
+
+    deny_because you_cant("create #{part_card.name}") unless part_card.ok? :create
   end
 end
 
 def ok_to_read
   return if Auth.always_ok?
+
   @read_rule_id ||= permission_rule_id(:read)
   return if Auth.as_card.read_rules.member? @read_rule_id
+
   deny_because you_cant "read this"
 end
 

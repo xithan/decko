@@ -5,7 +5,7 @@ require "card/seed_consts"
 CARD_TASKS =
   [
     :migrate,
-    { migrate: [:cards, :structure, :core_cards, :deck_cards, :redo, :stamp] },
+    { migrate: %i[cards structure core_cards deck_cards redo stamp] },
     :reset_cache
   ]
 
@@ -80,6 +80,7 @@ decko_namespace = namespace :decko do
     if Decko.paths["tmp"].existent
       Dir.foreach(tmp_dir) do |filename|
         next if filename.starts_with? "."
+
         FileUtils.rm_rf File.join(tmp_dir, filename), secure: true
       end
     else
@@ -111,6 +112,7 @@ decko_namespace = namespace :decko do
 
   def prepped_asset_path
     return if Rails.root.to_s == Decko.gem_root # inside decko gem
+
     assets_path = File.join Rails.public_path, "assets"
     if File.symlink?(assets_path) || !File.directory?(assets_path)
       FileUtils.rm_rf assets_path
@@ -133,7 +135,7 @@ decko_namespace = namespace :decko do
     # creates!
     begin
       Rake::Task["db:drop"].invoke
-    rescue
+    rescue StandardError
       puts "not dropped"
     end
 
@@ -156,6 +158,7 @@ decko_namespace = namespace :decko do
       Card.where("right_id" => 219).each do |watcher_list|
         watcher_list.include_set_modules
         next unless watcher_list.left
+
         watching = watcher_list.left.name
         watcher_list.item_names.each do |user|
           follower_hash[user] << watching
@@ -170,6 +173,7 @@ decko_namespace = namespace :decko do
 
       follower_hash.each do |user, items|
         next unless (card = Card.fetch(user)) && card.account
+
         Card::Auth.as(user) do
           following = card.fetch trait: "following", new: {}
           following.items = items
@@ -181,7 +185,7 @@ end
 
 def failing_loudly task
   yield
-rescue
+rescue StandardError
   # TODO: fix this so that message appears *after* the errors.
   # Solution should ensure that rake still exits with error code 1!
   raise "\n>>>>>> FAILURE! #{task} did not complete successfully." \

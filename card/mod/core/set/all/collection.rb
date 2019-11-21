@@ -2,9 +2,7 @@
 module ClassMethods
   def search spec, comment=nil
     results = ::Card::Query.run(spec, comment)
-    if block_given? && results.is_a?(Array)
-      results.each { |result| yield result }
-    end
+    results.each { |result| yield result } if block_given? && results.is_a?(Array)
     results
   end
 

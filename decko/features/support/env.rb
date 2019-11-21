@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+
 ENV["RAILS_ENV"] = "cucumber"
 
 require "decko"
@@ -34,12 +35,12 @@ Before("@no-db-clean-between-scenarios") do |scenario|
 end
 
 Before("not @background-jobs", "not @delayed-jobs", "not @javascript") do
- DatabaseCleaner.strategy = :transaction
+  DatabaseCleaner.strategy = :transaction
  DatabaseCleaner.start
 end
 
 After("not @background-jobs", "not @delayed-jobs", "not @javascript") do
- DatabaseCleaner.clean
+  DatabaseCleaner.clean
 end
 
 at_exit do
@@ -87,7 +88,7 @@ Capybara.register_driver :headless_chrome do |app|
 end
 Capybara.default_driver = :selenium_firefox
 
-Capybara.javascript_driver =  :selenium_firefox
+Capybara.javascript_driver = :selenium_firefox
 # Capybara.server = :webrick
 
 # Capybara defaults to XPath selectors rather than Webrat's default of CSS3. In
@@ -142,5 +143,3 @@ ActionController::Base.allow_rescue = false
 # The :transaction strategy is faster, but might give you threading problems.
 # See https://github.com/cucumber/cucumber-rails/blob/master/features/choose_javascript_database_strategy.feature
 Cucumber::Rails::Database.javascript_strategy = :truncation
-
-

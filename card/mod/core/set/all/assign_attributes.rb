@@ -1,4 +1,3 @@
-
 def assign_attributes args={}
   args = prepare_assignment_args args
 
@@ -47,14 +46,13 @@ def prepare_assignment_params args
   args = args.to_unsafe_h if args.respond_to?(:to_unsafe_h)
   params = ActionController::Parameters.new(args)
   params.permit!
-  if params[:db_content].is_a? Array
-    params[:db_content] = params[:db_content].join("\n")
-  end
+  params[:db_content] = params[:db_content].join("\n") if params[:db_content].is_a? Array
   params
 end
 
 def prepare_assignment_args args
   return {} unless args
+
   args = args.stringify_keys
   normalize_type_attributes args
   stash_set_specific_attributes args
@@ -73,6 +71,7 @@ def assign_with_subcards args
   yield
   # name= must come before process subcards
   return unless subcard_args.present?
+
   subcards.add subcard_args
 end
 

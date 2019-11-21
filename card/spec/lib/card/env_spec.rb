@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+
 require "card/content/chunk"
 
 RSpec.describe Card::Env do

@@ -1,6 +1,5 @@
-
 module Decko
-  DECKO_GEM_ROOT = File.expand_path("../..", __FILE__)
+  DECKO_GEM_ROOT = File.expand_path("..", __dir__)
 
   class << self
     def root
@@ -31,10 +30,9 @@ module Decko
 
     def locate_gem name
       spec = Bundler.load.specs.find { |s| s.name == name }
-      unless spec
-        raise GemNotFound, "Could not find gem '#{name}' in the current bundle."
-      end
-      return File.expand_path("../../../", __FILE__) if spec.name == "bundler"
+      raise GemNotFound, "Could not find gem '#{name}' in the current bundle." unless spec
+      return File.expand_path("../..", __dir__) if spec.name == "bundler"
+
       spec.full_gem_path
     end
   end

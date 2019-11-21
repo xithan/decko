@@ -52,7 +52,7 @@ class CardController < ApplicationController
   before_action :load_mark, only: [:read]
   before_action :load_card, except: [:asset]
   before_action :load_action, only: [:read]
-  before_action :refresh_card, only: [:create, :update, :delete]
+  before_action :refresh_card, only: %i[create update delete]
 
   def setup
     Card::Machine.refresh_script_and_style unless params[:explicit_file]
@@ -71,6 +71,7 @@ class CardController < ApplicationController
   def load_card
     @card = Card.controller_fetch params
     raise Card::Error::NotFound unless card
+
     record_as_main
   end
 
@@ -128,6 +129,7 @@ class CardController < ApplicationController
 
   def handle_exception exception
     raise exception if debug_exception?(exception)
+
     @card ||= Card.new
     error = Card::Error.report exception, card
     show error.class.view, error.class.status_code

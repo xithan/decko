@@ -5,6 +5,7 @@ class Cardname
     # @return true if name is left or right of context
     def child_of? context
       return false unless junction?
+
       context_key = context.to_name.key
       absolute_name(context).parent_keys.include? context_key
     end
@@ -37,15 +38,18 @@ class Cardname
     # original name in the context of "from"
     def name_from *from
       return self unless (remaining = remove_context *from)
+
       compressed = remaining.compact.unshift(nil).to_name  # exactly one nil at beginning
       key == compressed.absolute_name(from).key ? compressed : self
     end
 
     def remove_context *from
       return false unless from.compact.present?
+
       remaining = parts_excluding *from
       return false if remaining.compact.empty? || # all name parts in context
                       remaining == parts          # no name parts in context
+
       remaining
     end
 
@@ -60,14 +64,16 @@ class Cardname
         next if part.empty?
         next if part =~ /^_/ # this removes relative parts.  why?
         next if keys_to_ignore.member? part.to_name.key
+
         part
       end
     end
 
-    def absolute context, args={}
+    def absolute context, _args={}
       context = (context || "").to_name
       new_parts = absolutize_contextual_parts context
       return "" if new_parts.empty?
+
       absolutize_extremes new_parts, context.s
       new_parts.join self.class.joint
     end
@@ -92,8 +98,8 @@ class Cardname
         when /^_left$/i            then context.trunk
         # note - inconsistent use of left v. trunk
         when /^_right$/i           then context.tag
-        when /^_(\d+)$/i           then ordinal_part $~[1].to_i, context
-        when /^_(L*)(R?)$/i        then partmap_part $~, context
+        when /^_(\d+)$/i           then ordinal_part $LAST_MATCH_INFO[1].to_i, context
+        when /^_(L*)(R?)$/i        then partmap_part $LAST_MATCH_INFO, context
         else                            part
         end.to_s.strip
       end
@@ -110,7 +116,8 @@ class Cardname
     end
 
     def partmap_part match, context
-      l_s, r_s = match[1].size, !match[2].empty?
+      l_s = match[1].size
+      r_s = !match[2].empty?
       l_part = context.nth_left l_s
       r_s ? l_part.tag : l_part.s
     end
@@ -120,10 +127,10 @@ class Cardname
         next if new_parts[i].present?
         # following avoids recontextualizing with relative contexts.
         # Eg, `+A+B+.absolute('+A')` should be +A+B, not +A+A+B.
-        next if new_parts.to_name.send "#{[ :start, :end ][i]}s_with_parts?", context
+        next if new_parts.to_name.send "#{%i[start end][i]}s_with_parts?", context
+
         new_parts[i] = context
       end
     end
-
   end
 end

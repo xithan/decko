@@ -12,7 +12,7 @@ class MenuCompatibility < Card::Migration::Core
 
     # Delete output files so all the styling and js changes take effect.
     # (this can be removed if/when later migrations update those things directly)
-    [:style, :script].each do |setting|
+    %i[style script].each do |setting|
       Card.search(
         right_id: Card::MachineOutputID,
         left: { right: { codename: setting.to_s } }

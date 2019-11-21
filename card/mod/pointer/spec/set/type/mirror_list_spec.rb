@@ -5,12 +5,13 @@ RSpec.describe Card::Set::Type::MirrorList do
 
   before do
     Card::Auth.as_bot do
-      #create_mirrored_list "Parry Hotter+authors", "[[Darles Chickens]]"
+      # create_mirrored_list "Parry Hotter+authors", "[[Darles Chickens]]"
       Card.create! name: "Parry Hotter+authors", content: "[[Darles Chickens]]", type_id: Card::MirroredListID
       Card.create! name: "50 grades of shy+authors", content: "[[Darles Chickens]]\n[[Stam Broker]]", type_id: Card::MirroredListID
-      #create_mirrored_list "50 grades of shy+authors", "[[Darles Chickens]]\n[[Stam Broker]]"
+      # create_mirrored_list "50 grades of shy+authors", "[[Darles Chickens]]\n[[Stam Broker]]"
     end
   end
+
   it "doesn't allow non-cardtype as right part" do
     expect do
       Card["Parry Hotter+authors"].update!(name: "Parry Hotter+hidden")
@@ -39,14 +40,18 @@ RSpec.describe Card::Set::Type::MirrorList do
             content: "[[Stam Broker]]"
           )
         end
+
         it { is_expected.to eq ["50 grades of shy"] }
       end
+
       context "when Parry Hotter is deleted" do
         before do
           Card["Parry Hotter"].delete
         end
+
         it { is_expected.to eq ["50 grades of shy"] }
       end
+
       context "when a new book is created that lists Darles Chickens" do
         before do
           Card::Auth.as_bot do
@@ -59,13 +64,15 @@ RSpec.describe Card::Set::Type::MirrorList do
             )
           end
         end
+
         it do
-          is_expected.to eq(
+          expect(subject).to eq(
             ["50 grades of shy", "Adventures of Buckleharry Finn",
              "Parry Hotter"]
           )
         end
       end
+
       context "when Darles Chickens is added to a book's list" do
         before do
           Card::Auth.as_bot do
@@ -80,8 +87,9 @@ RSpec.describe Card::Set::Type::MirrorList do
                 .update!(content: "[[Darles Chickens]]")
           end
         end
+
         it do
-          is_expected.to eq(
+          expect(subject).to eq(
             [
               "50 grades of shy",
               "Adventures of Buckleharry Finn",
@@ -95,8 +103,10 @@ RSpec.describe Card::Set::Type::MirrorList do
         before do
           Card["Parry Hotter"].update! type_id: Card::BasicID
         end
+
         it { is_expected.to eq ["50 grades of shy"] }
       end
+
       context "when the name of Parry Hotter changed to Parry Moppins" do
         before do
           Card::Auth.as_bot do
@@ -106,20 +116,23 @@ RSpec.describe Card::Set::Type::MirrorList do
             )
           end
         end
+
         it { is_expected.to eq ["50 grades of shy", "Parry Moppins"] }
       end
 
       context "when the name of Darles Chickens changed" do
+        subject { Card.fetch("Darles Eggs+books").item_names.sort }
+
         before do
           Card["Darles Chickens"].update!(
             name: "Darles Eggs",
             update_referers: true
           )
         end
-        subject { Card.fetch("Darles Eggs+books").item_names.sort }
 
         it { is_expected.to eq ["50 grades of shy", "Parry Hotter"] }
       end
+
       context "when the cartype of Darles Chickens changed" do
         it "raises error" do
           expect do
@@ -127,6 +140,7 @@ RSpec.describe Card::Set::Type::MirrorList do
           end.to raise_error(ActiveRecord::RecordInvalid, /Type can\'t be changed/)
         end
       end
+
       context "when the name of Darles Chickens+books changed" do
         subject { Card.fetch("Darles Chickens+authors").item_names.sort }
 
@@ -135,13 +149,16 @@ RSpec.describe Card::Set::Type::MirrorList do
             name: "Darles Chickens+authors"
           )
         end
+
         it { is_expected.to eq [] }
       end
+
       context "when the name of the cardtype books changed" do
+        subject { Card.fetch("Darles Chickens+literature").item_names.sort }
+
         before do
           Card["book"].update! name: "literature"
         end
-        subject { Card.fetch("Darles Chickens+literature").item_names.sort }
 
         it { is_expected.to eq ["50 grades of shy", "Parry Hotter"] }
       end

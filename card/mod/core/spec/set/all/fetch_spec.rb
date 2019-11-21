@@ -12,7 +12,7 @@ RSpec.describe Card::Set::All::Fetch do
 
     it "returns nil and caches missing cards" do
       expect(Card.fetch("Zork")).to be_nil
-      expect(Card.cache.read("zork").new_card?).to be_truthy
+      expect(Card.cache.read("zork")).to be_new_card
       expect(Card.fetch("Zork")).to be_nil
     end
 
@@ -139,6 +139,7 @@ RSpec.describe Card::Set::All::Fetch do
           expect(card.db_content).to eq "default content"
         end
       end
+
       context "when new card exist" do
         it "doesn't change anything" do
           Card.new name: "new card",
@@ -202,7 +203,7 @@ RSpec.describe Card::Set::All::Fetch do
       it "does not be a new_record after being saved" do
         Card.create!(name: "growing up")
         card = Card.fetch("growing up")
-        expect(card.new_record?).to be_falsey
+        expect(card).not_to be_new_record
       end
     end
 
@@ -214,6 +215,7 @@ RSpec.describe Card::Set::All::Fetch do
           expect(card).to have_db_content "default content"
         end
       end
+
       context "when new card exist" do
         it "doesn't change content" do
           Card.new name: "new card", "+sub" => { content: "some content" }
@@ -240,7 +242,7 @@ RSpec.describe Card::Set::All::Fetch do
     it "takes a second hash of options as new card options" do
       new_card = Card.fetch "Never Before", new: { type: "Image" }
       expect(new_card).to be_a(Card).and be_a_new_record
-                                            .and have_type(:image)
+        .and have_type(:image)
       expect(Card.fetch("Never Before", new: {})).to have_type(:basic)
     end
   end
@@ -252,11 +254,13 @@ RSpec.describe Card::Set::All::Fetch do
                      content: '{"plus":"_self"}', type: "Search"
       end
     end
+
     it "finds cards with *right+*structure specified" do
       expect(Card.fetch("A+testsearch".to_name))
         .to be_virtual.and have_type(:search_type)
-                              .and have_content '{"plus":"_self"}'
+        .and have_content '{"plus":"_self"}'
     end
+
     context "fetched virtual card with new args" do
       it "fetchs the virtual card with type set in patterns" do
         Card.fetch "+testsearch", new: { name: "+testsearch",
@@ -264,7 +268,7 @@ RSpec.describe Card::Set::All::Fetch do
 
         c = Card.fetch("Home+testsearch".to_name)
         expect(c).to be_virtual.and have_type(:search_type)
-                                       .and have_content('{"plus":"_self"}')
+          .and have_content('{"plus":"_self"}')
 
         patterns = c.instance_variable_get("@patterns").map(&:to_s)
         expect(patterns).to include("Search+*type")

@@ -9,6 +9,7 @@ module SelectedAction
 
   def last_content_action_id
     return super if temporary_storage_type_change?
+
     # find action id from content (saves lookups)
     db_content.to_s.split(%r{[/\.]})[-2]
   end
@@ -19,6 +20,7 @@ format do
   view :source do
     file = card.attachment
     return "" unless file.valid?
+
     contextualize_path file.url
   end
 
@@ -35,8 +37,9 @@ format do
   def handle_source
     source = _render_source
     return "" if source.blank?
+
     block_given? ? yield(source) : source
-  rescue => e
+  rescue StandardError => e
     Rails.logger.info "Error with file source: #{e.message}"
     tr :file_error
   end
@@ -53,6 +56,7 @@ format :file do
     attachment_format = card.attachment_format(params[:format])
     return _render_not_found unless attachment_format
     return card.format(:html).render_core if card.remote_storage?
+
     set_response_headers
     args_for_send_file
   end
@@ -60,13 +64,14 @@ format :file do
   def args_for_send_file
     file = selected_version
     [file.path, { type: file.content_type,
-                  filename:  "#{card.name.safe_key}#{file.extension}",
+                  filename: "#{card.name.safe_key}#{file.extension}",
                   x_sendfile: true,
                   disposition: (params[:format] == "file" ? "attachment" : "inline") }]
   end
 
   def set_response_headers
     return unless params[:explicit_file] && (response = controller&.response)
+
     response.headers["Expires"] = 1.year.from_now.httpdate
     # currently using default "private", because proxy servers could block
     # needed permission checks
@@ -87,9 +92,8 @@ format :html do
   end
 
   view :input do
-    if card.web? || card.no_upload?
-      return text_field(:content, class: "d0-card-content")
-    end
+    return text_field(:content, class: "d0-card-content") if card.web? || card.no_upload?
+
     haml :file_chooser, action_text: file_chooser_action_text
   end
 

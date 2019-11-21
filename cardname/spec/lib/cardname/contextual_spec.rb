@@ -1,4 +1,5 @@
 # encoding: utf-8
+
 require_relative "../../spec_helper"
 
 RSpec.describe Cardname::Contextual do
@@ -87,12 +88,12 @@ RSpec.describe Cardname::Contextual do
   describe "#from" do
     it "ignores ignorables" do
       expect("you+awe".to_name.from("you")).to eq("+awe")
-      #expect("me+you+awe".to_name.from("you")).to eq("me+awe") #HMMM..... what should this do?
-      expect("me+you+awe".to_name.from("me" )).to eq("+you+awe")
-      expect("me+you+awe".to_name.from("me","you")).to eq("+awe")
-      expect("me+you".to_name.from("me","you")).to eq("me+you")
+      # expect("me+you+awe".to_name.from("you")).to eq("me+awe") #HMMM..... what should this do?
+      expect("me+you+awe".to_name.from("me")).to eq("+you+awe")
+      expect("me+you+awe".to_name.from("me", "you")).to eq("+awe")
+      expect("me+you".to_name.from("me", "you")).to eq("me+you")
       expect("?a?+awe".to_name.from("A")).to eq("+awe")
-      expect("+awe".to_name.from()).to eq("+awe")
+      expect("+awe".to_name.from).to eq("+awe")
       expect("+awe".to_name.from(nil)).to eq("+awe")
     end
   end
@@ -121,19 +122,18 @@ RSpec.describe Cardname::Contextual do
 
   describe "#name_from" do
     [
-     ["A+B",   "A",   "+B"],
-     ["A+B",   "B",   "A+B"],
-     ["A",     "A",   "A"],
-     ["A+B",   "A+B", "A+B"],
-     ["A",     "A+B", "A"],
-     #["A+C",   "A+B", "+C"],
-     #["A+B",   "C+B", "A"],
-     #["X+A+B", "A+C", "X+B"]
+      ["A+B",   "A",   "+B"],
+      ["A+B",   "B",   "A+B"],
+      %w[A A A],
+      ["A+B",   "A+B", "A+B"],
+      ["A",     "A+B", "A"]
+      # ["A+C",   "A+B", "+C"],
+      # ["A+B",   "C+B", "A"],
+      # ["X+A+B", "A+C", "X+B"]
     ].each do |name, from, res|
       it "#{name} from #{from} is #{res}" do
-        expect(name.to_name.from from).to eq res
+        expect(name.to_name.from(from)).to eq res
       end
     end
   end
-
 end

@@ -14,13 +14,13 @@ class Cardname
     def simple
       @simple = parts.size <= 1
     end
-    alias simple? simple
+    alias_method :simple?, :simple
 
     # @return true if name has more than one part
     def compound?
       !simple?
     end
-    alias junction? compound?
+    alias_method :junction?, :compound?
 
     def part_keys
       @part_keys ||= simple ? [simple_key] : parts.map { |p| p.to_name.simple_key }
@@ -109,7 +109,7 @@ class Cardname
     end
 
     def ancestors
-      @ancestors ||= pieces.reject { |p| p == self}
+      @ancestors ||= pieces.reject { |p| p == self }
     end
 
     # def + other

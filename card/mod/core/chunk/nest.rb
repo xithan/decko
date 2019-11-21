@@ -1,6 +1,6 @@
 # -*- encoding : utf-8 -*-
 
-require_dependency File.expand_path("../reference", __FILE__)
+require_dependency File.expand_path("reference", __dir__)
 
 class Card
   class Content
@@ -11,8 +11,8 @@ class Card
         DEFAULT_OPTION = :view # a value without a key is interpreted as view
 
         Chunk.register_class(self, prefix_re: '\\{\\{',
-                                   full_re:    /\A\{\{([^\}]*)\}\}/,
-                                   idx_char:  "{")
+                                   full_re: /\A\{\{([^\}]*)\}\}/,
+                                   idx_char: "{")
 
         def interpret match, _content
           in_brackets = strip_tags match[1]
@@ -84,6 +84,7 @@ class Card
 
         def explicit_view= view
           return if @options[:view]
+
           # could check to make sure it's not already the default...
           if @text =~ /\|/
             @text.sub! "|", "|#{view};"
@@ -110,6 +111,7 @@ class Card
 
         def each_option attr_string
           return if attr_string.blank?
+
           attr_string.strip.split(";").each do |pair|
             # key is optional for view option
             value, key = pair.split(":", 2).reverse

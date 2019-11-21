@@ -16,7 +16,7 @@ RULE_SQL = %(
     AND    rules.trash is false
     AND     sets.trash is false
     AND settings.trash is false;
-).freeze
+)
 
 # FIXME: "follow" hardcoded above
 
@@ -31,7 +31,7 @@ READ_RULE_SQL = %(
     AND       sets.type_id  = #{Card::SetID}
     AND read_rules.trash is false
     AND       sets.trash is false;
-).freeze
+)
 
 PREFERENCE_SQL = %(
   SELECT
@@ -54,7 +54,7 @@ PREFERENCE_SQL = %(
     AND users.trash       is false
     AND user_sets.trash   is false
     AND preferences.trash is false;
-).freeze
+)
 
 def is_rule?
   is_standard_rule? || is_preference?
@@ -81,7 +81,7 @@ end
 def rule setting_code, options={}
   options[:skip_modules] = true
   card = rule_card setting_code, options
-  card && card.db_content
+  card&.db_content
 end
 
 def rule_card setting_code, options={}
@@ -106,6 +106,7 @@ end
 def preference_card_id_lookups setting_code, options={}
   user_id = options[:user_id] || options[:user]&.id || Auth.current_id
   return unless user_id
+
   ["#{setting_code}+#{AllID}", "#{setting_code}+#{user_id}"]
 end
 
@@ -115,9 +116,7 @@ def related_sets with_self=false
 
   sets = []
   sets << ["#{name}+*self", Card::Set::Self.label(name)] if with_self
-  if known? && name.simple?
-    sets << ["#{name}+*right", Card::Set::Right.label(name)]
-  end
+  sets << ["#{name}+*right", Card::Set::Right.label(name)] if known? && name.simple?
   sets
 end
 
@@ -157,6 +156,7 @@ module ClassMethods
   def interpret_simple_rules
     ActiveRecord::Base.connection.select_all(RULE_SQL).each do |row|
       next unless (key = rule_cache_key row)
+
       @rule_hash[key] = row["rule_id"].to_i
     end
   end
@@ -164,6 +164,7 @@ module ClassMethods
   def interpret_preferences
     ActiveRecord::Base.connection.select_all(preference_sql).each do |row|
       next unless (key = rule_cache_key row) && (user_id = row["user_id"])
+
       add_preference_hash_values key, row["rule_id"].to_i, user_id.to_i
     end
   end

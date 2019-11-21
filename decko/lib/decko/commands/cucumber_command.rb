@@ -1,4 +1,4 @@
-require File.expand_path("../command", __FILE__)
+require File.expand_path("command", __dir__)
 
 module Decko
   module Commands
@@ -13,7 +13,7 @@ module Decko
 
       def command
         @cmd ||=
-          "#{env_args} #{@opts[:executer] || "bundle exec"} cucumber #{require_args} #{feature_args}"
+          "#{env_args} #{@opts[:executer] || 'bundle exec'} cucumber #{require_args} #{feature_args}"
       end
 
       private
@@ -48,4 +48,4 @@ module Decko
   end
 end
 
-require File.expand_path("../cucumber_command/parser", __FILE__)
+require File.expand_path("cucumber_command/parser", __dir__)

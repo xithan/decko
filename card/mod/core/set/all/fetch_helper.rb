@@ -45,6 +45,7 @@ module ClassMethods
 
   def validate_fetch_opts! opts
     return unless opts[:new] && opts[:skip_virtual]
+
     raise Card::Error, "fetch called with new args and skip_virtual"
   end
 
@@ -69,6 +70,7 @@ module ClassMethods
   # @return [{Card}, {True/False}] Card object and "needs_caching" ruling
   def retrieve_existing mark, opts
     return [nil, false] unless mark.present?
+
     mark_type, mark_key = retrievable_mark_type_and_value mark
     if (card = retrieve_from_cache_by_mark mark_type, mark_key, opts)
       # we have an acceptable card in the cache
@@ -100,6 +102,7 @@ module ClassMethods
 
   def return_cached_card? card, look_in_trash
     return false unless card
+
     card.real? || !look_in_trash
   end
 
@@ -120,9 +123,9 @@ module ClassMethods
 
   def new_card_fetch_results card, mark, opts
     case
-      when opts[:new].present? then return card.renew(opts)
-      when opts[:new] # noop for empty hash
-      when opts[:skip_virtual] then return nil
+    when opts[:new].present? then return card.renew(opts)
+    when opts[:new] # noop for empty hash
+    when opts[:skip_virtual] then return nil
     end
     card.assign_name_from_fetched_mark! mark, opts
     finalize_fetch_results card, opts
@@ -143,6 +146,7 @@ module ClassMethods
 
   def absolutize_fetch_mark mark, supercard
     return mark unless mark.name? && supercard
+
     mark.to_name.absolute_name supercard.name
   end
 end
@@ -152,5 +156,6 @@ public
 def assign_name_from_fetched_mark! mark, opts
   return if opts[:local_only]
   return unless mark && mark.to_s != name
+
   self.name = mark.to_s
 end

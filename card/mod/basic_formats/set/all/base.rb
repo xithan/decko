@@ -22,7 +22,6 @@ format do
   view(:linkname, compact: true, perms: :none) { card.name.url_key }
   view(:url,      compact: true, perms: :none) { card_url _render_linkname }
 
-
   view :url_link, compact: true, perms: :none do
     link_to_resource card_url(_render_linkname)
   end
@@ -43,9 +42,9 @@ format do
 
   def specify_type_in_link! opts
     return if opts[:known] || !voo.type
+
     opts[:path] = { card: { type: voo.type } }
   end
-
 
   view(:codename, compact: true) { card.codename.to_s }
   view(:id,       compact: true) { card.id            }
@@ -73,6 +72,7 @@ format do
 
   def structure_card
     return nil if voo.structure == true
+
     voo.structure ? Card[voo.structure] : card
   end
 

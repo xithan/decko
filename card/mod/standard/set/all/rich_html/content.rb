@@ -73,7 +73,7 @@ format :html do
   view :labeled, unknown: true do
     @content_body = true
     wrap(true, class: "row") do
-      labeled(render_title, wrap_body { "#{render_menu}#{render_labeled_content}" } )
+      labeled(render_title, wrap_body { "#{render_menu}#{render_labeled_content}" })
     end
   end
 
@@ -136,13 +136,16 @@ format :html do
 
   def short_content_items
     return unless card.respond_to? :count
+
     "#{count} #{'item'.pluralize count}"
   end
 
   def short_content_fields
     return unless voo.structure || card.structure
+
     fields = nested_fields.size
     return if fields.zero?
+
     "#{fields} #{'field'.pluralize fields}"
   end
 

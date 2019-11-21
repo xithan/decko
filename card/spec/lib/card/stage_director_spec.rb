@@ -2,57 +2,53 @@
 
 RSpec.describe Card::ActManager::StageDirector do
   describe "abortion" do
+    subject { Card.fetch "a card" }
+
     let(:create_card) { Card.create name: "a card" }
     let(:create_card_with_subcard) do
       Card.create name: "a card",
                   subcards: { "a subcard" => "content" }
     end
 
-    subject { Card.fetch "a card" }
-
     context "when error added" do
       it "stops act in validation phase" do
         in_stage :validate, on: :save, trigger: -> { create_card } do
           errors.add :stop, "don't do this"
         end
-        is_expected.to be_falsey
+        expect(subject).to be_falsey
       end
 
       it "stops act in storage phase" do
         in_stage :store, on: :save, trigger: -> { create_card } do
           errors.add :stop, "don't do this"
         end
-        is_expected.to be_falsey
+        expect(subject).to be_falsey
       end
     end
 
     context "when exception raised" do
       it "rollbacks in finalize stage" do
-        begin
-          in_stage :finalize,
-                   on: :save,
-                   trigger: -> { create_card } do
-            raise Card::Error, "rollback"
-          end
-        rescue Card::Error => e
-        ensure
-          is_expected.to be_falsey
+        in_stage :finalize,
+                 on: :save,
+                 trigger: -> { create_card } do
+          raise Card::Error, "rollback"
         end
+      rescue Card::Error => e
+      ensure
+        expect(subject).to be_falsey
       end
 
       it "does not rollback in integrate stage" do
-        begin
-          Card::Auth.as_bot do
-            in_stage :integrate,
-                     on: :save,
-                     trigger: -> { create_card } do
-              raise Card::Error::Abort, "rollback"
-            end
+        Card::Auth.as_bot do
+          in_stage :integrate,
+                   on: :save,
+                   trigger: -> { create_card } do
+            raise Card::Error::Abort, "rollback"
           end
-        rescue Card::Error::Abort => e
-        ensure
-          is_expected.to be_truthy
         end
+      rescue Card::Error::Abort => e
+      ensure
+        expect(subject).to be_truthy
       end
     end
 
@@ -63,7 +59,7 @@ RSpec.describe Card::ActManager::StageDirector do
                  trigger: -> { create_card } do
           abort :success
         end
-        is_expected.to be_falsey
+        expect(subject).to be_falsey
       end
 
       it "does not execute subcard stages on create" do
@@ -140,7 +136,7 @@ RSpec.describe Card::ActManager::StageDirector do
                  trigger: -> { create_card } do
           abort :success
         end
-        is_expected.to be_falsey
+        expect(subject).to be_falsey
       end
 
       it "aborts storage in finalize stage" do
@@ -149,7 +145,7 @@ RSpec.describe Card::ActManager::StageDirector do
                  trigger: -> { create_card } do
           abort :success
         end
-        is_expected.to be_falsey
+        expect(subject).to be_falsey
       end
 
       it "does not abort storage in integrate stage" do
@@ -158,7 +154,7 @@ RSpec.describe Card::ActManager::StageDirector do
                  trigger: -> { create_card } do
           abort :success
         end
-        is_expected.to be_truthy
+        expect(subject).to be_truthy
       end
     end
   end
@@ -175,8 +171,9 @@ RSpec.describe Card::ActManager::StageDirector do
       Card.create name: "1+2",
                   subcards: { "11" => "A" }
     end
-    let(:preorder) { %w(1 11 111 12 121) }
-    let(:postorder) { %w(111 11 121 12 1) }
+    let(:preorder) { %w[1 11 111 12 121] }
+    let(:postorder) { %w[111 11 121 12 1] }
+
     describe "validate" do
       it "is pre-order depth-first" do
         order = []
@@ -199,8 +196,8 @@ RSpec.describe Card::ActManager::StageDirector do
           create_card_with_subcards
         end
         expect(order).to eq(
-                           %w(v:1 v:11 v:111 v:12 v:121 pts:1 pts:11 pts:111 pts:12 pts:121)
-                         )
+          %w[v:1 v:11 v:111 v:12 v:121 pts:1 pts:11 pts:111 pts:12 pts:121]
+        )
       end
     end
 
@@ -239,9 +236,9 @@ RSpec.describe Card::ActManager::StageDirector do
           create_card_with_subcards
         end
         expect(order).to eq(
-                           %w(store:1 store:11 store:111 finalize:111 finalize:11
-             store:12 store:121 finalize:121 finalize:12 finalize:1)
-                         )
+          %w[store:1 store:11 store:111 finalize:111 finalize:11
+             store:12 store:121 finalize:121 finalize:12 finalize:1]
+        )
       end
     end
 
@@ -278,7 +275,7 @@ RSpec.describe Card::ActManager::StageDirector do
         end
         # Delayed::Worker.new.work_off
         expect(order).to eq(
-                           %w(
+          %w[
             i:1 i:11 i:111 i:12 i:121
             ptv:1 ptv:11 ptv:111 ptv:12 ptv:121
             v:1 v:11 v:111
@@ -296,8 +293,8 @@ RSpec.describe Card::ActManager::StageDirector do
             f:1
             ig:1 ig:11 ig:111 ig:112v ig:12 ig:121
             igwd:1 igwd:11 igwd:111 igwd:112v igwd:12 igwd:121
-          )
-                         )
+          ]
+        )
       end
 
       it "with junction" do
@@ -331,7 +328,7 @@ RSpec.describe Card::ActManager::StageDirector do
         end
         # Delayed::Worker.new.work_off
         expect(order).to eq(
-                           %w(
+          %w[
             i:1+2 i:11
             ptv:1+2 ptv:11
             v:1+2 v:11
@@ -343,8 +340,8 @@ RSpec.describe Card::ActManager::StageDirector do
             f:1+2
             ig:1+2 ig:11 ig:1 ig:2
             igwd:1+2 igwd:11 igwd:1 igwd:2
-          )
-                         )
+          ]
+        )
       end
     end
   end
@@ -383,6 +380,7 @@ RSpec.describe Card::ActManager::StageDirector do
         expect(Card["main+sub2+sub3"].class).to eq(Card)
       end
     end
+
     it "has correct name if supercard's name get changed to a junction card" do
       Card::Auth.as_bot do
         changed = false
@@ -408,7 +406,6 @@ RSpec.describe Card::ActManager::StageDirector do
                  on: :create,
                  for: "single card",
                  trigger: :create_single_card do
-
           u_card = attach_subfield "a user", type_id: Card::UserID
           f_card = u_card.attach_subfield "*follow"
           expect(f_card.set_modules)
@@ -485,7 +482,6 @@ RSpec.describe Card::ActManager::StageDirector do
       expect(Card["act card"].acts.size).to eq(1), "new act for 'act card'"
       expect(Card["iwd created card"].actions.last.act).to eq Card["act card"].acts.last
       expect(Card["iwd created card"].acts.size).to eq(0), "no act added"
-
     end
   end
 end

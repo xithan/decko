@@ -37,8 +37,8 @@ class AddScriptCards < Card::Migration::Core
 
     # Permissions for JavaScript and CoffeeScript types
     # ( the same as for CSS and SCSS)
-    %w(JavaScript CoffeeScript).each do |type|
-      [:create, :update, :delete].each do |action|
+    %w[JavaScript CoffeeScript].each do |type|
+      %i[create update delete].each do |action|
         Card.gimme!("#{type}+#{Card[:type].name}+#{Card[action].name}",
                     content: "[[#{Card[:administrator].name}]]")
       end
@@ -63,8 +63,8 @@ class AddScriptCards < Card::Migration::Core
 
     # create default script rule
     card_type = { "js" => "java_script", "coffee" => "coffee_script" }
-    scripts        = %w(jquery tinymce slot     card_menu jquery_helper html5shiv_printshiv)
-    types          = %w(js     js      coffee   js        js            js)
+    scripts = %w[jquery tinymce slot card_menu jquery_helper html5shiv_printshiv]
+    types = %w[js js coffee js js js]
     # jquery.mobile  (in jquery_helper) must be after card to avoid mobileinit nastiness
     cardnames = scripts.map { |name| "script: #{name.tr('_', ' ')}" }
 

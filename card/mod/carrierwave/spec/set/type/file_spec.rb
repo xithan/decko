@@ -63,7 +63,7 @@ RSpec.describe Card::Set::Type::File do
       subject { source_view protected_file }
 
       it "renders protected url to be processed by wagn" do
-        is_expected.to(
+        expect(subject).to(
           eq "/files/~#{protected_file.id}/#{protected_file.last_action_id}.txt"
         )
       end
@@ -73,7 +73,7 @@ RSpec.describe Card::Set::Type::File do
       subject { source_view unprotected_file }
 
       it "renders relative url" do
-        is_expected.to(
+        expect(subject).to(
           eq "/files/~#{unprotected_file.id}/"\
              "#{unprotected_file.last_action_id}.txt"
         )
@@ -84,7 +84,7 @@ RSpec.describe Card::Set::Type::File do
       subject { source_view web_file }
 
       it "renders saved url" do
-        is_expected.to eq web_url
+        expect(subject).to eq web_url
       end
     end
 
@@ -92,7 +92,7 @@ RSpec.describe Card::Set::Type::File do
       subject { source_view coded_file }
 
       it "renders protected url to be processed by decko" do
-        is_expected.to(
+        expect(subject).to(
           eq "/files/:#{coded_file.codename}/bootstrap-medium.png"
         )
       end
@@ -102,7 +102,7 @@ RSpec.describe Card::Set::Type::File do
       subject { source_view cloud_file }
 
       it "renders absolute url to cloud" do
-        is_expected
+        expect(subject)
           .to eq "http://#{DIRECTORY}.s3.amazonaws.com/"\
                  "files/#{cloud_file.id}/#{cloud_file.last_action_id}.txt"
       end
@@ -146,7 +146,7 @@ RSpec.describe Card::Set::Type::File do
         end
 
         it "stores file" do
-          expect(File.exist?(subject.file.path)).to be_truthy
+          expect(File).to exist(subject.file.path)
           expect(subject.file.read.strip).to eq "file1"
         end
 
@@ -212,6 +212,10 @@ RSpec.describe Card::Set::Type::File do
       end
 
       describe "coded" do
+        subject do
+          create_file_card :coded, test_file, codename: "mod_file", mod: "test_mod"
+        end
+
         before do
           FileUtils.mkdir_p mod_path
           # file_dir = File.join(mod_path,  "file", "mod_file")
@@ -221,12 +225,10 @@ RSpec.describe Card::Set::Type::File do
           # end
           Card::Mod.dirs.mod "test_mod"
         end
+
         after do
           FileUtils.rm_rf mod_path
           Card::Mod.dirs.mods.delete "test_mod"
-        end
-        subject do
-          create_file_card :coded, test_file, codename: "mod_file", mod: "test_mod"
         end
 
         let(:file_path) { File.join mod_path, "file", "mod_file", "file.txt" }
@@ -256,37 +258,37 @@ RSpec.describe Card::Set::Type::File do
         end
       end
 
-    #   describe "cloud" do
-    #     before(:context) do
-    #       storage_config :cloud
-    #       @cloud_card = create_file_card :cloud, test_file, bucket: :test_bucket
-    #       storage_config :local
-    #     end
-    #     after(:context) do
-    #       Card::Auth.as_bot do
-    #         update "file card", codename: nil
-    #         Card["file card"].delete!
-    #       end
-    #     end
-    #     #subject { cloud_file }
-    #
-    #     it "stores correct identifier "\
-    #        "((<bucket>)/<card id>/<action id>.<ext>)" do
-    #       expect(@cloud_card.content)
-    #         .to eq "(test_bucket)/#{@cloud_card.id}/#{@cloud_card.last_action_id}.txt"
-    #     end
-    #
-    #     it "stores file" do
-    #       expect(@cloud_card.file.read.strip).to eq "file1"
-    #     end
-    #
-    #     it "generates correct absolute url" do
-    #       expect(@cloud_card.file.url)
-    #         .to eq "http://#{DIRECTORY}.s3.amazonaws.com/"\
-    #            "files/#{@cloud_card.id}/#{@cloud_card.last_action_id}.txt"
-    #     end
-    #   end
-    # end
+      #   describe "cloud" do
+      #     before(:context) do
+      #       storage_config :cloud
+      #       @cloud_card = create_file_card :cloud, test_file, bucket: :test_bucket
+      #       storage_config :local
+      #     end
+      #     after(:context) do
+      #       Card::Auth.as_bot do
+      #         update "file card", codename: nil
+      #         Card["file card"].delete!
+      #       end
+      #     end
+      #     #subject { cloud_file }
+      #
+      #     it "stores correct identifier "\
+      #        "((<bucket>)/<card id>/<action id>.<ext>)" do
+      #       expect(@cloud_card.content)
+      #         .to eq "(test_bucket)/#{@cloud_card.id}/#{@cloud_card.last_action_id}.txt"
+      #     end
+      #
+      #     it "stores file" do
+      #       expect(@cloud_card.file.read.strip).to eq "file1"
+      #     end
+      #
+      #     it "generates correct absolute url" do
+      #       expect(@cloud_card.file.url)
+      #         .to eq "http://#{DIRECTORY}.s3.amazonaws.com/"\
+      #            "files/#{@cloud_card.id}/#{@cloud_card.last_action_id}.txt"
+      #     end
+      #   end
+      # end
       describe "cloud" do
         subject { cloud_file }
 
@@ -346,17 +348,18 @@ RSpec.describe Card::Set::Type::File do
     end
 
     context "if storage type is coded" do
+      subject do
+        create_file_card :coded, test_file, codename: "mod_file", mod: "test_mod"
+      end
+
       before do
         FileUtils.mkdir_p mod_path
         Card::Mod.dirs.mod "test_mod"
       end
+
       after do
         FileUtils.rm_rf mod_path
         Card::Mod.dirs.mods.delete "test_mod"
-      end
-
-      subject do
-        create_file_card :coded, test_file, codename: "mod_file", mod: "test_mod"
       end
 
       it "changes storage type to default" do
@@ -366,6 +369,7 @@ RSpec.describe Card::Set::Type::File do
         expect(subject.db_content)
           .to eq "~#{subject.id}/#{subject.last_action_id}.txt"
       end
+
       it "keeps storage type coded if explicitly set" do
         storage_config :local
         subject.update! file: test_file(2), storage_type: :coded
@@ -407,11 +411,11 @@ RSpec.describe Card::Set::Type::File do
   context "deleting" do
     it "removes symlink for unprotected files" do
       pp = unprotected_file.attachment.public_path
-      expect(File.exist?(pp)).to be_truthy
+      expect(File).to exist(pp)
       Card::Auth.as_bot do
         unprotected_file.delete!
       end
-      expect(Dir.exist?(File.dirname(pp))).to be_falsey
+      expect(Dir).not_to exist(File.dirname(pp))
     end
   end
 
@@ -427,7 +431,9 @@ RSpec.describe Card::Set::Type::File do
 
     context "from cloud to local" do
       before { storage_config :cloud }
+
       after { Cardio.config.file_storage = :local }
+
       it "copies file to local file system" do
         # not yet supported
         expect { Card[subject.name].update!(storage_type: :local) }
@@ -442,9 +448,11 @@ RSpec.describe Card::Set::Type::File do
       before do
         FileUtils.mkdir_p mod_path
       end
+
       after do
         FileUtils.rm_rf mod_path
       end
+
       let(:file_path) { File.join mod_path, "file", "mod_file", "file.txt" }
 
       it "copies file to mod" do
@@ -456,7 +464,7 @@ RSpec.describe Card::Set::Type::File do
         end
         expect(subject.db_content)
           .to eq ":#{subject.codename}/test_mod.txt"
-        expect(File.exist?(file_path)).to be_truthy
+        expect(File).to exist(file_path)
       end
     end
 

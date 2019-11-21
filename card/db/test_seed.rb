@@ -16,7 +16,6 @@ class SharedData
   CARDTYPE_COUNT = 42
 
   class << self
-
     def create_user name, args
       args[:subcards] = account_args args if args[:email]
 
@@ -50,6 +49,7 @@ class SharedData
                       customized_bootswatch_skin]
       Card::Auth.createable_types.each do |type|
         next if no_samples.include? type.to_name.key
+
         create type: type, name: "Sample #{type}"
       end
 
@@ -58,7 +58,7 @@ class SharedData
       end
 
       create_layout_type "lay out", "Greatest {{_main|title: Callahan!; view: labeled}}"
-      create_pointer "stacks", ["horizontal", "vertical"]
+      create_pointer "stacks", %w[horizontal vertical]
       create_pointer "stacks+*self+*layout", "lay out"
       create "horizontal"
       create_pointer "vertical"
@@ -76,7 +76,7 @@ class SharedData
         ["Z", "I'm here to be referenced to"],
         ["A", "Alpha [[Z]]"],
         ["B", "Beta {{Z}}"],
-        ["T", "Theta"],
+        %w[T Theta],
         ["X", "[[A]] [[A+B]] [[T]]"],
         ["Y", "{{B}} {{A+B}} {{A}} {{T}}"],
         ["A+B", "AlphaBeta"],
@@ -170,10 +170,10 @@ class SharedData
 
       # noinspection RubyResolve
       Card["Joe Admin"].fetch(trait: :roles, new: { type_code: "pointer" })
-        .items = [Card::AdministratorID, Card::SharkID, Card::HelpDeskID]
+                       .items = [Card::AdministratorID, Card::SharkID, Card::HelpDeskID]
 
       Card["Joe User"].fetch(trait: :roles, new: { type_code: "pointer" })
-              .items = [Card::SharkID]
+                      .items = [Card::SharkID]
 
       create_user "u1", email: "u1@user.com", password: "u1_pass"
       create_user "u2", email: "u2@user.com", password: "u2_pass"
@@ -189,19 +189,18 @@ class SharedData
       Card["u3"].fetch(trait: :roles, new: {}).items = [r1, r4, Card::AdministratorID]
     end
 
-
     def cardtype_cards
       # for wql & permissions
-      %w[A+C A+D A+E C+A D+A F+A A+B+C].each {|name| create name}
+      %w[A+C A+D A+E C+A D+A F+A A+B+C].each { |name| create name }
       ("A".."F").each do |ch|
         create "Cardtype #{ch}", type_code: "cardtype",
-               codename: "cardtype_#{ch.downcase}"
+                                 codename: "cardtype_#{ch.downcase}"
       end
       Card::Codename.reset_cache
 
       ("a".."f").each do |ch|
         create "type-#{ch}-card", type_code: "cardtype_#{ch}",
-               content: "type_#{ch}_content"
+                                  content: "type_#{ch}_content"
       end
 
       create_pointer "Cardtype B+*type+*create", "[[r3]]"
@@ -210,7 +209,6 @@ class SharedData
       ## --------- create templated permissions -------------
       create "Cardtype E+*type+*default"
     end
-
 
     def notification_cards
       Timecop.freeze(Cardio.future_stamp - 1.day) do
@@ -232,7 +230,7 @@ class SharedData
 
         followers.each do |name, _follow|
           create_user name, email: "#{name.parameterize}@user.com",
-                      password: "#{name.parameterize}_pass"
+                            password: "#{name.parameterize}_pass"
         end
 
         create "All Eyes On Me"
@@ -278,7 +276,7 @@ class SharedData
           ["card with fields", "field 1", "field 2"],
           ["card with fields and admin fields", "field 1", "admin field 1"],
           ["admin card with fields and admin fields", "field 1", "admin field 1"],
-          ["admin card with admin fields", "admin field 1", "admin field 2"],
+          ["admin card with admin fields", "admin field 1", "admin field 2"]
         ].each do |name, f1, f2|
           create name,
                  content: "main content {{+#{f1}}}  {{+#{f2}}}",
@@ -298,7 +296,6 @@ class SharedData
         end
         create ["field 1", :right, :read], type: "Pointer", content: "[[Anyone]]"
       end
-
     end
   end
 
@@ -306,12 +303,12 @@ class SharedData
       Far out in the uncharted backwaters of the unfashionable end of
       the western spiral arm of the Galaxy lies a small unregarded
       yellow sun.
-      
+
       Orbiting this at a distance of roughly ninety-two million miles
       is an utterly insignificant little blue green planet whose ape-
       descended life forms are so amazingly primitive that they still
       think digital watches are a pretty neat idea.
-      
+
       This planet has - or rather had - a problem, which was this: most
       of the people living on it were unhappy for pretty much of the time.
       Many solutions were suggested for this problem, but most of these

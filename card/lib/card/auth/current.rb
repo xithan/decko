@@ -56,7 +56,7 @@ class Card
 
       def no_special_roles?
         Auth.current_roles.size == 1 # &&
-          # Auth.current_roles.first == Card.fetch_name(:anyone_signed_in)
+        # Auth.current_roles.first == Card.fetch_name(:anyone_signed_in)
       end
 
       def clear_current_roles

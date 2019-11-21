@@ -161,16 +161,13 @@ class Card < ApplicationRecord
 
   define_callbacks(
     :select_action, :show_page, :act,
-
     # VALIDATION PHASE
     :initialize_stage, :prepare_to_validate_stage, :validate_stage,
     :initialize_final_stage, :prepare_to_validate_final_stage,
     :validate_final_stage,
-
     # STORAGE PHASE
     :prepare_to_store_stage, :store_stage, :finalize_stage,
     :prepare_to_store_final_stage, :store_final_stage, :finalize_final_stage,
-
     # INTEGRATION PHASE
     :integrate_stage, :integrate_with_delay_stage,
     :integrate_final_stage,
@@ -183,7 +180,7 @@ class Card < ApplicationRecord
   before_validation :validation_phase, unless: -> { only_storage_phase? }
   around_save :storage_phase
   after_commit :integration_phase, unless: -> { only_storage_phase? }
-#  after_rollback :clean_up, unless: -> { only_storage_phase? }
+  #  after_rollback :clean_up, unless: -> { only_storage_phase? }
 
   ActiveSupport.run_load_hooks(:card, self)
 end

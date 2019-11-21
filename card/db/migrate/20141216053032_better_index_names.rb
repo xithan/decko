@@ -19,6 +19,5 @@ class BetterIndexNames < ActiveRecord::Migration[4.2]
     rename_index :cards, "index_cards_on_read_rule_id", "cards_read_rule_id_index"
   end
 
-  def down
-  end
+  def down; end
 end

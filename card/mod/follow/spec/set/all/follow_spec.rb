@@ -41,7 +41,7 @@ RSpec.describe Card::Set::All::Follow do
 
       it do
         expect(followers).to eq ["Big Brother", "Narcissist", "Optic fan", "Sara",
-                           "Sunglasses fan"]
+                                 "Sunglasses fan"]
       end
     end
 
@@ -50,7 +50,7 @@ RSpec.describe Card::Set::All::Follow do
 
       it do
         expect(followers).to eq ["Big Brother", "Narcissist", "Optic fan", "Sara",
-                           "Sunglasses fan"]
+                                 "Sunglasses fan"]
       end
     end
 

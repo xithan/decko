@@ -1,4 +1,5 @@
 #-*- encoding : utf-8 -*-
+
 $LOAD_PATH.unshift(ENV["JASMINE_GEM_PATH"]) if ENV["JASMINE_GEM_PATH"] # for gem testing purposes
 
 require "rubygems"

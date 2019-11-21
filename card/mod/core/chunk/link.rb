@@ -1,6 +1,6 @@
 # -*- encoding : utf-8 -*-
 
-require_dependency File.expand_path("../reference", __FILE__)
+require_dependency File.expand_path("reference", __dir__)
 
 module Card::Content::Chunk
   class Link < Reference
@@ -9,8 +9,8 @@ module Card::Content::Chunk
     # Groups: $1, [$2]: [[$1]] or [[$1|$2]] or $3, $4: [$3][$4]
     Card::Content::Chunk.register_class self,
                                         prefix_re: '\\[\\[',
-                                        full_re:   /\A\[\[([^\]]+)\]\]/,
-                                        idx_char:  "["
+                                        full_re: /\A\[\[([^\]]+)\]\]/,
+                                        idx_char: "["
     def reference_code
       CODE
     end
@@ -37,6 +37,7 @@ module Card::Content::Chunk
       # there's probably a better way to do the following.
       # point is to find the first pipe that's not inside an nest
       return unless string.index "|"
+
       string_copy = string.dup
       string.scan(/\{\{[^\}]*\}\}/) do |incl|
         string_copy.gsub! incl, ("x" * incl.length)
@@ -51,6 +52,7 @@ module Card::Content::Chunk
 
     def objectify raw
       return unless raw
+
       raw.strip!
       if raw =~ /(^|[^\\])\{\{/
         Card::Content.new raw, format

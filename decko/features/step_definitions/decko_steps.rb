@@ -1,5 +1,6 @@
 # -*- encoding : utf-8 -*-
-# rubocop:disable Lint/AmbiguousRegexpLiteral, Lint/Syntax
+
+# rubocop:disable Lint/AmbiguousRegexpLiteral
 
 require "uri"
 require "cgi"
@@ -16,6 +17,6 @@ end
 
 Given /^site stops simulating setup need$/ do
   Card::Auth.hide_accounts! false
-  #Card::Auth.simulate_setup_need! false
+  # Card::Auth.simulate_setup_need! false
   # step "I am signed out"
 end

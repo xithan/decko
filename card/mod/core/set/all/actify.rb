@@ -17,6 +17,7 @@ end
 def add_to_act
   # if only_storage_phase is true then the card is already part of the act
   return yield if ActManager.act_card == self || only_storage_phase
+
   director.reset_stage
   director.update_card self
   self.only_storage_phase = true
@@ -41,15 +42,15 @@ module ClassMethods
   end
 end
 
-def save!(*)
+def save! *
   act { super }
 end
 
-def save(*)
+def save *
   act { super }
 end
 
-def valid?(*)
+def valid? *
   act { super }
 end
 

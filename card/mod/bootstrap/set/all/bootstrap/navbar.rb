@@ -1,5 +1,3 @@
-
-
 format :html do
   # Options
   # @param opts [Hash]
@@ -32,13 +30,14 @@ format :html do
         navbar_header(opts[:brand]),
         navbar_toggle(id, opts[:toggle_align]),
         wrap_with(:div, class: "collapse navbar-collapse",
-                  id: "navbar-collapse-#{id}") { content }
+                        id: "navbar-collapse-#{id}") { content }
       ]
     end
   end
 
   def navbar_header brand
     return "" unless brand
+
     if brand.is_a? String
       "<span class='navbar-brand'>#{brand}</span>"
     else

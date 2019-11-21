@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+
 require "optparse"
 
 module Decko
@@ -28,9 +29,9 @@ module Decko
             parser.on("--[no-]spring", "Run with spring") do |spring|
               opts[:executer] =
                 if spring
-                 "spring"
+                  "spring"
                 else
-                 "bundle exec"
+                  "bundle exec"
                 end
             end
           end

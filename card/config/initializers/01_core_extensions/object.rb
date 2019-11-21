@@ -14,7 +14,7 @@ module CoreExtensions
       else
         klone =
           if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("2.4") &&
-             (self.is_a?(Fixnum) || self.is_a?(Bignum))
+             (is_a?(Integer) || is_a?(Integer))
             self
           else
             clone
@@ -42,7 +42,7 @@ module CoreExtensions
       # (at least in development mode) but the name cache is persistent.
       # Hence the name objects in the cache are objects of a different instance of the
       # Card::Name class and is_a?(Card::Name) will return false
-      self.is_a? Cardname
+      is_a? Cardname
     end
 
     def to_viewname

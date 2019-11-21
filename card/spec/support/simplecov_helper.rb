@@ -9,16 +9,16 @@ def card_simplecov_filters
   add_filter "/tasks/"
   # filter all card mods
   add_filter do |src_file|
-    src_file.filename =~ /tmp\// && !/\d+-(.+\.rb)/.match(src_file.filename) do |m|
+    src_file.filename =~ %r{tmp/} && !/\d+-(.+\.rb)/.match(src_file.filename) do |m|
       Dir["mod/**/#{m[1].tr('-', '/').sub('/', '/set/')}"].present?
     end
   end
   # add group for each deck mod
   Dir["mod/*"].map { |path| path.sub("mod/", "") }.each do |mod|
     add_group mod.capitalize do |src_file|
-      src_file.filename =~ /mod\/#{mod}\// ||
+      src_file.filename =~ %r{mod/#{mod}/} ||
         (
-          src_file.filename =~ /tmp\// &&
+          src_file.filename =~ %r{tmp/} &&
           (match = /\d+-(.+\.rb)/.match(src_file.filename) do |m|
             # '/set' is not in the path anymore after some updates
             # but `set` exists in the path of the source files
@@ -30,25 +30,25 @@ def card_simplecov_filters
   end
 
   add_group "Sets" do |src_file|
-    src_file.filename =~ /tmp\/set\// &&
+    src_file.filename =~ %r{tmp/set/} &&
       /\d+-(.+\.rb)/.match(src_file.filename) { |m| Dir["mod/**/#{m[1]}"].present? }
   end
   add_group "Set patterns" do |src_file|
-    src_file.filename =~ /tmp\/set_pattern\// &&
+    src_file.filename =~ %r{tmp/set_pattern/} &&
       /\d+-(.+\.rb)/.match(src_file.filename) { |m| Dir["mod/**/#{m[1]}"].present? }
   end
   add_group "Formats" do |src_file|
-    src_file.filename =~ /mod\/[^\/]+\/formats/
+    src_file.filename =~ %r{mod/[^/]+/formats}
   end
   add_group "Chunks" do |src_file|
-    src_file.filename =~ /mod\/[^\/]+\/chunks/
+    src_file.filename =~ %r{mod/[^/]+/chunks}
   end
 end
 
 def card_core_dev_simplecov_filters
   filters.clear # This will remove the :root_filter that comes via simplecov's defaults
   add_filter do |src|
-    !(src.filename =~ /^#{SimpleCov.root}/) unless src.filename =~ /card|wagn/
+    src.filename !~ /^#{SimpleCov.root}/ unless src.filename =~ /card|wagn/
   end
 
   add_filter "/spec/"
@@ -62,9 +62,9 @@ def card_core_dev_simplecov_filters
   add_group "Set Patterns", "tmp/set_pattern/"
   add_group "Sets",         "tmp/set/"
   add_group "Formats" do |src_file|
-    src_file.filename =~ /mod\/[^\/]+\/format/
+    src_file.filename =~ %r{mod/[^/]+/format}
   end
   add_group "Chunks" do |src_file|
-    src_file.filename =~ /mod\/[^\/]+\/chunk/
+    src_file.filename =~ %r{mod/[^/]+/chunk}
   end
 end

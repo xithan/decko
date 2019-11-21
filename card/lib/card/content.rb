@@ -46,7 +46,7 @@ class Card
     end
 
     def has_chunk? chunk_type
-      each_chunk.any { |chunk| chunk.is_a?(chunk_type)}
+      each_chunk.any { |chunk| chunk.is_a?(chunk_type) }
     end
 
     # sends &block to #process_chunk on each Chunk object

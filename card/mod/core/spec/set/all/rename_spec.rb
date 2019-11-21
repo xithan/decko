@@ -73,7 +73,7 @@ RSpec.describe Card::Set::All::Rename do
   it "updates descendants" do
     old_names = %w[One+Two One+Two+Three Four+One Four+One+Five]
     new_names = %w[Uno+Two Uno+Two+Three Four+Uno Four+Uno+Five]
-    card_list = old_names.map {|name| Card[name]}
+    card_list = old_names.map { |name| Card[name] }
 
     expect(card_list.map(&:name)).to eq old_names
     update "One", name: "Uno"

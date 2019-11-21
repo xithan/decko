@@ -19,13 +19,13 @@ RSpec.describe Card do
   context "when there is a general toc rule of 2" do
     before do
       Card::Auth.as_bot do
-        create [:basic, :type, :table_of_contents], "2"
+        create %i[basic type table_of_contents], "2"
       end
     end
 
     specify do
       expect(c1.type_id).to eq(Card::BasicID)
-      expect(rule_card).to be_a Card
+      expect(rule_card).to be_a described_class
     end
 
     describe ".rule" do
@@ -39,9 +39,11 @@ RSpec.describe Card do
       it "does not render for 'Onne Heading'" do
         expect(c1).not_to have_toc
       end
+
       it "renders for 'Twwo Heading'" do
         expect(c2).to have_toc
       end
+
       it "renders for 'Three Heading'" do
         expect(c3).to have_toc
       end
@@ -52,6 +54,7 @@ RSpec.describe Card do
         sets = described_class["A"].related_sets.map { |s| s[0] }
         expect(sets).to eq(["A+*right"])
       end
+
       it "has 2 sets (type, and right) for a cardtype card" do
         sets = described_class["Cardtype A"].related_sets.map { |s| s[0] }
         expect(sets).to eq(["Cardtype A+*type", "Cardtype A+*right"])
@@ -71,6 +74,7 @@ RSpec.describe Card do
       #   sets.should == ['Cardtype A+*self', 'Cardtype A+*type',
       #     'Cardtype A+*right', 'RichText+Cardtype A+*type plus right']
       # end
+
       it "is empty for a non-simple card" do
         sets = described_class["A+B"].related_sets.map { |s| s[0] }
         expect(sets).to eq([])
@@ -99,9 +103,11 @@ RSpec.describe Card do
       it "does not render toc for 'Onne Heading'" do
         expect(c1).to have_toc
       end
+
       it "renders toc for 'Twwo Heading'" do
         expect(c2).to have_toc
       end
+
       it "does not render for 'Twwo Heading' when changed to 3" do
         rule_card.content = "3"
         expect(c2.rule(:table_of_contents)).to eq("3")
@@ -140,9 +146,11 @@ RSpec.describe Card do
       it "does not render for 'Onne Heading'" do
         expect(@c1).not_to have_toc
       end
+
       it "renders for 'Twwo Heading'" do
         expect(@c2).not_to have_toc
       end
+
       it "renders for 'Three Heading'" do
         expect(@c3).not_to have_toc
       end
@@ -190,6 +198,7 @@ RSpec.describe Card do
         end
       end
     end
+
     it "takes on new setting value" do
       c = described_class["toc1"]
       expect(c.rule_card(:table_of_contents).name)
@@ -201,10 +210,12 @@ RSpec.describe Card do
       it "does not render for 'Onne Heading'" do
         expect(@c1).not_to have_toc
       end
+
       it "renders for 'Twwo Heading'" do
         expect(@c2.rule(:table_of_contents)).to eq("2")
         expect(@c2).to have_toc
       end
+
       it "renders for 'Three Heading'" do
         expect(@c3).to have_toc
       end
@@ -231,9 +242,11 @@ RSpec.describe Card do
       it "does not render toc for 'Onne Heading'" do
         expect(c1).to have_toc
       end
+
       it "renders toc for 'Twwo Heading'" do
         expect(c2).to have_toc
       end
+
       it "does not render for 'Twwo Heading' when changed to 3" do
         rule_card.content = "3"
         expect(c2).not_to have_toc

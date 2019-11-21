@@ -59,5 +59,3 @@ format :html do
     card.structure && card.template.ok?(:update)
   end
 end
-
-

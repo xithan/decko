@@ -1,11 +1,12 @@
 # -*- encoding : utf-8 -*-
+
 ENV["RAILS_ENV"] = "test"
-require File.expand_path("../../lib/decko/environment", __FILE__)
+require File.expand_path("../lib/decko/environment", __dir__)
 require "rails/test_help"
 require "pathname"
 
 unless defined? TEST_ROOT
-  TEST_ROOT = Pathname.new(File.expand_path(File.dirname(__FILE__))).cleanpath(true).to_s
+  TEST_ROOT = Pathname.new(__dir__).cleanpath(true).to_s
 
   class ActiveSupport::TestCase
     # Setup all fixtures in test/fixtures/*.(yml|csv) for all tests in alphabetical order.
@@ -90,7 +91,7 @@ unless defined? TEST_ROOT
           # args[:cardtypes] = YAML.load_file('db/bootstrap/card_codenames.yml').
           bootstrap_file = File.join(Cardio.gem_root, "db/bootstrap/cards.yml")
           cardtypes = YAML.load_file(bootstrap_file).select do |p|
-            !%w(set setting).member?(p[1]["codename"]) &&
+            !%w[set setting].member?(p[1]["codename"]) &&
               (card = Card[p[1]["name"]]) && card.type_id == Card::CardtypeID
           end
           args[:cardtypes] = cardtypes.map { |_k, v| v["codename"] }

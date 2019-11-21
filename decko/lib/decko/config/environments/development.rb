@@ -1,5 +1,3 @@
-
-
 Decko::Engine.configure do
   config.cache_classes = false
 end
@@ -98,7 +96,7 @@ Decko.application.class.configure do
     config.console = Pry
   rescue LoadError
   end
-  #config.session_store :cookie_store
+  # config.session_store :cookie_store
 end
 
 # Paperclip.options[:command_path] = "/opt/local/bin"

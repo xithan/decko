@@ -28,10 +28,11 @@ module ClassMethods
     card, needs_caching = retrieve_or_new mark, opts
 
     return if card.nil?
+
     write_to_cache card, opts[:local_only] if needs_caching
     standard_fetch_results card, mark, opts
   rescue ActiveModel::RangeError => _e
-    return Card.new name: "card id out of range: #{mark}"
+    Card.new name: "card id out of range: #{mark}"
   end
 
   # fetch only real (no virtual) cards
@@ -85,8 +86,9 @@ module ClassMethods
   def fetch_id *mark
     mark, _opts = normalize_fetch_args mark
     return mark if mark.is_a? Integer
+
     card = quick_fetch mark.to_s
-    card && card.id
+    card&.id
   end
 
   # @param mark - see #fetch
@@ -117,6 +119,7 @@ end
 def fetch opts={}
   traits = opts.delete(:trait)
   return unless traits
+
   # should this fail as an incorrect api call?
   traits = Array.wrap traits
   traits.inject(self) do |card, trait|
@@ -144,8 +147,8 @@ end
 def refresh force=false
   return self unless force || frozen? || readonly?
   return unless id
+
   fresh_card = self.class.find id
   fresh_card.include_set_modules
   fresh_card
 end
-

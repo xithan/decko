@@ -1,9 +1,9 @@
 # -*- encoding : utf-8 -*-
 
-version = File.open(File.expand_path("../VERSION", __FILE__)).read.chomp
-vbits = version.split('.').map &:to_i
+version = File.open(File.expand_path("VERSION", __dir__)).read.chomp
+vbits = version.split(".").map &:to_i
 vplus = { 0 => 90, 1 => 100 } # can remove and hardcode after 1.0
-vminor = vplus[ vbits[0] ] + vbits[1]
+vminor = vplus[vbits[0]] + vbits[1]
 card_version = [1, vminor, vbits[2]].compact.map(&:to_s).join "."
 # Because card was already at 1.21 when wagn was renamed to decko and decko's
 # versioning went back to 0.X, card's versioning is now a little funny.
@@ -11,13 +11,12 @@ card_version = [1, vminor, vbits[2]].compact.map(&:to_s).join "."
 # card 1.(100+X).Y. Things will get much simpler after 2.0, when decko X.Y.Z
 # will map to card X.Y.Z.
 
-
 Gem::Specification.new do |s|
   s.name = "card"
   s.version = card_version
 
   s.authors =
-    [ "Ethan McCutchen", "Philipp Kühl", "Lewis Hoffman", "Gerry Gleason" ]
+    ["Ethan McCutchen", "Philipp Kühl", "Lewis Hoffman", "Gerry Gleason"]
   s.email = ["info@decko.org"]
 
   s.summary       = "a simple engine for emergent data structures"
@@ -40,11 +39,10 @@ Gem::Specification.new do |s|
     ["haml",                       "~> 5.0"], # markup language used in view API
     ["jwt",                        "~> 2.2"], # used in token.rb
     ["uuid",                       "~> 2.3"], # universally unique identifier.
-                                              # used in temporary names
+    # used in temporary names
     ["colorize",                   "~> 0.8"], # livelier cli outputs
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # MOVE TO MODS?
-
 
     # files and images
     ["carrierwave",                 "2.0.2"],

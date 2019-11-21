@@ -2,7 +2,7 @@
 # developers.  Therefore they should contain only tasks for core developers.
 
 task :push_gems do
-  %w(card cardname decko).each do |gem|
+  %w[card cardname decko].each do |gem|
     system %(
       cd #{gem}
       rm *.gem
@@ -39,5 +39,5 @@ task :cp_tmpsets do
 end
 
 def version
-  File.open(File.expand_path("../card/VERSION", __FILE__)).read.chomp
+  File.open(File.expand_path("card/VERSION", __dir__)).read.chomp
 end

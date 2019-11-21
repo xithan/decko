@@ -26,13 +26,13 @@ class Card
     end
 
     @@group_names = {
-      templating:  "Templating",
-      permission:  "Permissions",
-      webpage:     "Webpage",
-      editing:     "Editing",
-      event:       "Events",
-      other:       "Other",
-      config:      "Config"
+      templating: "Templating",
+      permission: "Permissions",
+      webpage: "Webpage",
+      editing: "Editing",
+      event: "Events",
+      other: "Other",
+      config: "Config"
     }
     @@groups = @@group_names.keys.each_with_object({}) do |key, groups|
       groups[key] = []
@@ -61,6 +61,7 @@ class Card
       self.applies = opts[:applies]
       right_set.raw_help_text = self.raw_help_text = opts[:help_text]
       return unless opts[:user_specific]
+
       @@user_specific << @codename
     end
 
@@ -83,6 +84,7 @@ class Card
 
     def applies_to_prototype? prototype
       return true unless applies
+
       applies.call(prototype)
     end
 
@@ -90,6 +92,7 @@ class Card
 
     def permitted_type_ids types
       return unless types
+
       type_ids = Array.wrap(types).flatten.map do |cardtype|
         Card::Codename.id cardtype
       end

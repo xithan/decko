@@ -58,7 +58,7 @@ class Card
         else
           link_to_view(
             :related, name_changes,
-            path: { slot: { items: { view: "history", nest_name: @action.card.name } } },
+            path: { slot: { items: { view: "history", nest_name: @action.card.name } } }
             # "data-slot-selector" => ".card-slot.history-view"
           )
         end

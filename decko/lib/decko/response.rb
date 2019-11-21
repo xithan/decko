@@ -2,6 +2,7 @@ module Decko
   # methods for managing decko responses
   module Response
     private
+
     def respond format, result, status
       if status.in? [302, 303]
         hard_redirect result
@@ -67,6 +68,7 @@ module Decko
 
     def require_card_for_soft_redirect!
       return if card.is_a? Card
+
       raise Card::Error, "tried to do soft redirect without a card"
     end
 
@@ -116,7 +118,7 @@ module Decko
       case mark
       when "*previous"
         # Why support this? It's only needed in Success, right? Deprecate?
-        return hard_redirect(Card::Env.previous_location)
+        hard_redirect(Card::Env.previous_location)
       when nil
         implicit_mark
       else
@@ -144,12 +146,14 @@ module Decko
 
     def view_does_not_require_name?
       return false unless (view = params[:view]&.to_sym)
+
       Card::Set::Format::AbstractFormat::ViewOpts.unknown_ok[view]
     end
 
     # alters params
     def initial_setup
       return unless initial_setup?
+
       prepare_setup_card!
     end
 

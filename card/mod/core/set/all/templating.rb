@@ -1,4 +1,3 @@
-
 def is_template?
   return @is_template unless @is_template.nil?
 
@@ -46,6 +45,7 @@ end
 
 def assign_type_to? structure
   return if type_id == structure.type_id
+
   structure.assigns_type?
 end
 
@@ -60,7 +60,8 @@ def assigns_type?
 end
 
 def structure
-  return unless template && template.is_structure?
+  return unless template&.is_structure?
+
   template
 end
 

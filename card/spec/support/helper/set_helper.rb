@@ -17,7 +17,7 @@ class Card
       def format_with format_type=:html, &block
         dynamic_set =
           create_dynamic_set do
-            format(format_type, &block)
+            format_type % &block
           end
         format_with_set dynamic_set, format_type
         #::Card::Set::Self::DynamicSet, :html
@@ -60,7 +60,6 @@ class Card
       end
 
       def include_set_in_test_set set
-        # rubocop:disable Lint/Eval
         ::Card::Set::Self.const_remove_if_defined :TestSet
         eval <<-RUBY
           class ::Card::Set::Self

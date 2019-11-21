@@ -3,7 +3,7 @@ RSpec.describe Card::Query::CardQuery::Run do
   include QuerySpecHelper
 
   it "does not alter original statement" do
-    query = { right_plus: { name: %w(in tag source) } }
+    query = { right_plus: { name: %w[in tag source] } }
     query_clone = query.deep_clone
     Card::Query.run query
     expect(query_clone).to eq(query)
@@ -13,12 +13,12 @@ RSpec.describe Card::Query::CardQuery::Run do
     context "when returning names" do
       it "finds real cards" do
         expect(run_query(name: [:in, "C", "D", "F"], append: "A"))
-          .to eq(%w(C+A D+A F+A))
+          .to eq(%w[C+A D+A F+A])
       end
 
       it "absolutizes names" do
         expect(run_query(name: [:in, "C", "D", "F"], append: "_right", context: "B+A"))
-          .to eq(%w(C+A D+A F+A))
+          .to eq(%w[C+A D+A F+A])
       end
 
       it "finds virtual cards" do
@@ -46,11 +46,11 @@ RSpec.describe Card::Query::CardQuery::Run do
     end
 
     it "handles _left" do
-      expect(returning("_left")).to eq %w(A+B A)
+      expect(returning("_left")).to eq %w[A+B A]
     end
 
     it "handles _right" do
-      expect(returning("_right")).to eq %w(C C)
+      expect(returning("_right")).to eq %w[C C]
     end
 
     it "handles _LL" do

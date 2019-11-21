@@ -50,6 +50,7 @@ module MachineClassMethods
   def store_machine_output args={}, &block
     output_config.merge!(args)
     return unless block_given?
+
     define_method :after_engine, &block
   end
 end
@@ -57,8 +58,7 @@ end
 card_accessor :machine_output, type: :file
 card_accessor :machine_input, type: :pointer
 
-def before_engine
-end
+def before_engine; end
 
 def engine_input
   # TODO: replace with call of extended_item_cards
@@ -71,6 +71,7 @@ def engine_input
   until items.empty?
     item = items.shift
     next if item.trash || already_extended[item.id].to_i > loop_limit
+
     if item.item_cards == [item] # no pointer card
       new_input << item
     else
@@ -191,5 +192,3 @@ def machine_output_path
   ensure_machine_output
   machine_output_card.file.path
 end
-
-

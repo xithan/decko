@@ -10,7 +10,7 @@ class ImportBootstrapLayout < Card::Migration::Core
     end
 
     import_json "bootstrap_layout.json" # , pristine: true, output_file: nil
-    if layout && layout.pristine? && (all = Card[:all])
+    if layout&.pristine? && (all = Card[:all])
       layout_rule_card = all.fetch trait: :layout
       style_rule_card  = all.fetch trait: :style
       if layout_rule_card.pristine? && style_rule_card.pristine?

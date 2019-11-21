@@ -1,9 +1,9 @@
 RECAPTCHA_ERROR_CODES = {  # LOCALIZE
-  "missing-input-secret" =>	"secret parameter is missing",
-  "invalid-input-secret" =>	"secret parameter is invalid or malformed",
-  "missing-input-response" =>	"response parameter is missing",
-  "invalid-input-response" =>	"response parameter is invalid or malformed",
-  "bad-request" =>	"request is invalid or malformed"
+  "missing-input-secret" => "secret parameter is missing",
+  "invalid-input-secret" => "secret parameter is invalid or malformed",
+  "missing-input-response" => "response parameter is missing",
+  "invalid-input-response" => "response parameter is invalid or malformed",
+  "bad-request" => "request is invalid or malformed"
 }
 
 def human?
@@ -38,9 +38,9 @@ def add_recaptcha_errors error_codes
 end
 
 def recaptcha_success? result
-  result['success'] &&
-    (result['score'].to_f >= Cardio.config.recaptcha_minimum_score) &&
-    (result['action'].to_sym == action.to_sym)
+  result["success"] &&
+    (result["score"].to_f >= Cardio.config.recaptcha_minimum_score) &&
+    (result["action"].to_sym == action.to_sym)
 end
 
 def recaptcha_response
@@ -68,7 +68,6 @@ def handle_recaptcha_config_errors
     yield
   end
 end
-
 
 def validate_recaptcha?
   !@supercard && !Env[:recaptcha_used] && recaptcha_on?

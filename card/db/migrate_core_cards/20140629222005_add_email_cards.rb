@@ -3,14 +3,14 @@
 class AddEmailCards < Card::Migration::Core
   def up
     # change notification rules
-    %w(create update delete).each do |action|
+    %w[create update delete].each do |action|
       Card.create! name: "*on #{action}", type_code: :setting, codename: "on_#{action}"
       Card.create! name: "*on #{action}+*right+*help", content: "Configures email to be sent when card is #{action}d."
       Card.create! name: "*on #{action}+*right+*default", type_code: :pointer
     end
 
     # change email address list fields to pointers
-    [:to, :from, :cc, :bcc].each do |field|
+    %i[to from cc bcc].each do |field|
       set = Card[field].fetch(trait: :right, new: {})
       default_rule = set.fetch(trait: :default, new: {})
       default_rule.type_id = Card::PointerID
@@ -63,11 +63,11 @@ class AddEmailCards < Card::Migration::Core
 
     # move old hard-coded signup alert email handling to new card-based on_create handling
     Card.create!(
-      name: ([:signup, :type, :on_create].map { |code| Card[code].name } * "+"),
+      name: (%i[signup type on_create].map { |code| Card[code].name } * "+"),
       type_id: Card::PointerID, content: "[[signup alert email]]"
     )
     if request_card = Card[:request]
-      [:to, :from].each do |field|
+      %i[to from].each do |field|
         if old_card = request_card.fetch(trait: field) && !old_card.db_content.blank?
           Card.create! name: "signup alert email+#{Card[field].name}", content: old_card.db_content
         end
@@ -118,6 +118,7 @@ class AddEmailCards < Card::Migration::Core
 
     send = Card[:send]
     return unless send
+
     send.update codename: nil
     send.delete!
   end

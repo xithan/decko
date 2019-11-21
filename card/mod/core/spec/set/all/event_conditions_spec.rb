@@ -1,7 +1,7 @@
 # -*- encoding : utf-8 -*-
 
 RSpec.describe Card::Set::All::EventConditions do
-  let(:create_card) {Card.create!(name: "main card")}
+  let(:create_card) { Card.create!(name: "main card") }
   let(:create_card_with_subcards) do
     Card.create name: "main card",
                 subcards: {
@@ -11,7 +11,7 @@ RSpec.describe Card::Set::All::EventConditions do
   end
 
   context "restricted to changed content:" do
-    STAGES = [:validate, :store, :finalize, :integrate]
+    STAGES = %i[validate store finalize integrate]
 
     def add_to_log entry
       @log << entry

@@ -11,6 +11,7 @@ end
 
 def reset_patterns_if_rule saving=false
   return unless (set = super)
+
   add_to_read_rule_update_queue set.item_cards(limit: 0) if saving
 end
 

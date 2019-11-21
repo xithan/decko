@@ -12,15 +12,14 @@ event :validate_unique_email, after: :validate_email, on: :save do
       wql = { right_id: Card::EmailID, eq: content, return: :id }
       wql[:not] = { id: id } if id
       wql_comment = tr(:search_email_duplicate, content: content)
-      if Card.search(wql, wql_comment).first
-        errors.add :content, tr(:error_not_unique)
-      end
+      errors.add :content, tr(:error_not_unique) if Card.search(wql, wql_comment).first
     end
   end
 end
 
 event :downcase_email, :prepare_to_validate, on: :save do
   return if !content || content == content.downcase
+
   self.content = content.downcase
 end
 

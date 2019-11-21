@@ -40,6 +40,7 @@ end
 event :lose_coded_status_on_update, :initialize, on: :update, when: :coded? do
   # unless explicit
   return if @new_mod
+
   @new_storage_type ||= storage_type_from_config
 end
 
@@ -58,6 +59,7 @@ end
 
 event :update_public_link, after: :update_read_rule, when: :local? do
   return if content.blank?
+
   if who_can(:read).include? Card::AnyoneID
     create_public_links
   else
@@ -68,6 +70,7 @@ end
 def create_public_links
   path = attachment.public_path
   return if File.exist? path
+
   FileUtils.mkdir_p File.dirname(path)
   File.symlink attachment.path, path unless File.symlink? path
   create_versions_public_links
@@ -76,6 +79,7 @@ end
 def create_versions_public_links
   attachment.versions.each do |_name, version|
     next if File.symlink? version.public_path
+
     File.symlink version.path, version.public_path
   end
 end
@@ -83,6 +87,7 @@ end
 def remove_public_links
   symlink_dir = File.dirname attachment.public_path
   return unless Dir.exist? symlink_dir
+
   FileUtils.rm_rf symlink_dir
 end
 
@@ -138,6 +143,7 @@ end
 def mod_from_deprecated_content
   return if content =~ /^\~/
   return unless (lines = content.split("\n")) && lines.size == 4
+
   lines.last
 end
 
@@ -156,6 +162,7 @@ end
 
 def new_card_bucket
   return unless new_card?
+
   # If the file is assigned before the bucket option we have to
   # check if there is a bucket options in set_specific.
   # That happens for exmaple when the file appears before the bucket in the
@@ -170,6 +177,7 @@ end
 
 def load_bucket_config
   return {} unless bucket
+
   bucket_config = Cardio.config.file_buckets &&
                   Cardio.config.file_buckets[bucket.to_sym]
   bucket_config &&= bucket_config.symbolize_keys
@@ -190,6 +198,7 @@ def ensure_bucket_config
   unless config[:credentials]
     raise Card::Error, "couldn't find credentials for bucket #{bucket}"
   end
+
   config
 end
 
@@ -197,6 +206,7 @@ def load_bucket_config_from_env config
   config ||= {}
   CarrierWave::FileCardUploader::CONFIG_OPTIONS.each do |key|
     next if key.in? %i[attributes credentials]
+
     replace_with_env_variable config, key
   end
   config[:credentials] ||= {}
@@ -210,6 +220,7 @@ def load_bucket_credentials_from_env cred_config
     Regexp.new(/^(?:#{bucket.to_s.upcase}_)?CREDENTIALS_(?<option>.+)$/)
   ENV.keys.each do |env_key|
     next unless (m = cred_opt_pattern.match(env_key))
+
     replace_with_env_variable cred_config, m[:option].downcase.to_sym,
                               "credentials"
   end
@@ -224,6 +235,7 @@ end
 
 def bucket_from_content
   return unless content
+
   content.match(/^\((?<bucket>[^)]+)\)/) { |m| m[:bucket] }
 end
 
@@ -240,6 +252,7 @@ end
 def storage_type_from_config
   type = ENV["FILE_STORAGE"] || Cardio.config.file_storage
   return unless type
+
   type = type.to_sym
   unless type.in? CarrierWave::FileCardUploader::STORAGE_TYPES
     raise Card::Error,
@@ -285,7 +298,7 @@ end
 
 def storage_type= value
   known_storage_type? value
-  if @action == :update #&& storage_type != value
+  if @action == :update # && storage_type != value
     # we cant update the storage type directly here
     # if we do then the uploader doesn't find the file we want to update
     @new_storage_type = value
@@ -307,6 +320,7 @@ def with_storage_options opts={}
   validate_temporary_storage_type_change opts[:storage_type]
   %i[storage_type mod bucket].each do |opt_name|
     next unless opts[opt_name]
+
     old_values[opt_name] = instance_variable_get "@#{opt_name}"
     instance_variable_set "@#{opt_name}", opts[opt_name]
     @temp_storage_type = true

@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+
 module Jasmine
   class Config
     # Add your overrides or custom config code here

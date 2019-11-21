@@ -163,13 +163,13 @@ module CarrierWave
     attr_accessor :mod
     include Card::Env::Location
 
-    STORAGE_TYPES = [:cloud, :web, :coded, :local].freeze
-    CONFIG_OPTIONS = [:provider, :attributes, :directory, :public, :credentials,
-                      :authenticated_url_expiration, :use_ssl_for_aws].freeze
-    CONFIG_CREDENTIAL_OPTIONS = [
-      :provider,
-      :aws_access_key_id, :aws_secret_access_key, :region, :host, :endpoint,
-      :google_access_key_id, :google_secret_access_key
+    STORAGE_TYPES = %i[cloud web coded local].freeze
+    CONFIG_OPTIONS = %i[provider attributes directory public credentials
+                        authenticated_url_expiration use_ssl_for_aws].freeze
+    CONFIG_CREDENTIAL_OPTIONS = %i[
+      provider
+      aws_access_key_id aws_secret_access_key region host endpoint
+      google_access_key_id google_secret_access_key
     ].freeze
     delegate :store_dir, :retrieve_dir, :file_dir, :mod, :bucket, to: :model
 
@@ -205,6 +205,7 @@ module CarrierWave
       model.with_storage_options opts do
         return model.content if model.web?
         return "" unless file.present?
+
         "%s/%s" % [file_dir, url_filename]
       end
     end
@@ -279,8 +280,7 @@ module CarrierWave
     end
 
     def original_filename
-      @original_filename ||= model.selected_action &&
-                             model.selected_action.comment
+      @original_filename ||= model.selected_action&.comment
     end
 
     def action_id

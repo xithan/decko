@@ -35,6 +35,7 @@ def fetch_read_rules
 
   ([Card::AnyoneID] + parties).each_with_object([]) do |party_id, rule_ids|
     next unless self.class.read_rule_cache[party_id]
+
     rule_ids.concat self.class.read_rule_cache[party_id]
   end
 end
@@ -44,10 +45,16 @@ def clear_roles
 end
 
 def with_clear_roles
-  a, b, c, d = @parties, @all_roles, @all_active_roles, @read_rules
+  a = @parties
+  b = @all_roles
+  c = @all_active_roles
+  d = @read_rules
   yield
 ensure
-  @parties, @all_roles, @all_active_roles, @read_rules = a, b, c, d
+  @parties = a
+  @all_roles = b
+  @all_active_roles = c
+  @read_rules = d
 end
 
 def all_enabled_roles

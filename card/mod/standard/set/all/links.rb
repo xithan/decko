@@ -138,6 +138,7 @@ format :html do
   def interpret_data_opts_to_link_to opts
     %i[remote method].each do |key|
       next unless (val = opts.delete key)
+
       opts["data-#{key}"] = val
     end
   end

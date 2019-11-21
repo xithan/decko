@@ -59,6 +59,5 @@ class MoveRevisionsToActions < ActiveRecord::Migration[4.2]
     # remove_column :cards, :current_revision
   end
 
-  def down
-  end
+  def down; end
 end

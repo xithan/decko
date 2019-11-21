@@ -50,7 +50,7 @@ class DeckoGenerator
 
     def build_option key, desc, command
       command &&= " " * (65 - desc.size) + "[" + command + "]"
-      "  #{key} - #{desc}#{command if command}"
+      "  #{key} - #{desc}#{command}"
     end
 
     def add_config_options
@@ -88,7 +88,7 @@ class DeckoGenerator
         desc: "seed all databases (production, development, and test)",
         command: "decko seed --all",
         code: proc do
-          %w(production development test).each do |env|
+          %w[production development test].each do |env|
             bundle_exec "rake decko:seed", rails_env: env
           end
           add_after_seed_options
@@ -105,9 +105,9 @@ class DeckoGenerator
     def add_after_seed_options
       @menu["x"][:desc] = "exit"
       @menu["r"] = {
-        desc:    "run decko server",
+        desc: "run decko server",
         command: "decko server",
-        code:    proc { bundle_exec "decko server" }
+        code: proc { bundle_exec "decko server" }
       }
     end
   end

@@ -103,7 +103,7 @@ module CarrierWave
           @#{column}_changed = true
           @#{column}_is_changing = true
         end
-        
+
         def #{column}_is_changing?
           @#{column}_is_changing
         end

@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+
 module NavigationHelpers
   # Maps a name to a path. Used by the
   #
@@ -36,7 +37,7 @@ module NavigationHelpers
       "/#{Regexp.last_match(1).to_name.url_key}?view=edit"
 
     when /rename (.*)$/
-      "/#{$1.to_name.url_key}?view=edit_name"
+      "/#{Regexp.last_match(1).to_name.url_key}?view=edit_name"
 
     when /new (.*)$/
       "/new/#{Regexp.last_match(1).to_name.url_key}"

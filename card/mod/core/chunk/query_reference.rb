@@ -1,6 +1,6 @@
 # -*- encoding : utf-8 -*-
 
-require_dependency File.expand_path("../reference", __FILE__)
+require_dependency File.expand_path("reference", __dir__)
 
 module Card::Content::Chunk
   # This should find +Alfred+ in expressions like
@@ -32,8 +32,8 @@ module Card::Content::Chunk
             # we have to use a lookbehind, otherwise
             # if the colon matches it would be
             # identified mistakenly as an URI chunk
-            full_re:   /\A\s*"([^"]+)"/,
-            idx_char:  '"'
+            full_re: /\A\s*"([^"]+)"/,
+            idx_char: '"'
     )
 
     # OPTIMIZE: instead of comma or square bracket check for operator followed
@@ -57,11 +57,13 @@ module Card::Content::Chunk
         # FIXME: would not match cardnames that are keywords
         match, offset = super(content, prefix)
         return if !match || keyword?(match[1])
+
         [match, offset]
       end
 
       def keyword? str
         return unless str
+
         QUERY_KEYWORDS.include?(str.tr(" ", "_").downcase)
       end
     end

@@ -94,5 +94,4 @@ describe Card::Mod::Loader do
     end
     expect(Card.new(name: "test load", type: "set+test load")).to respond_to :hi
   end
-
 end

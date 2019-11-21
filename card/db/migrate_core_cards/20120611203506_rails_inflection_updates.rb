@@ -37,7 +37,7 @@ class RailsInflectionUpdates < Card::Migration::Core
       # plural,     wrong singular,  correct singular
       word(['(\w+)lice',  '(\w+)louse',    '\1lice']),
       word(['(\w+)mice',  '(\w+)mouse',    '\1mice']),
-      word_end(%w(kine cow kine)),
+      word_end(%w[kine cow kine]),
       word(keep_the_s("analysi")),
       word(keep_the_s("axi"))
     ]
@@ -51,6 +51,7 @@ class RailsInflectionUpdates < Card::Migration::Core
 
       card_names.reject! do |name|  # change a name only once
         next unless name =~ plural
+
         # can't use fetch, because it uses the wrong key
         # find_by_name is case-insensitve and finds the wrong cards for camel case names
         card = Card.where(name: name).find { |card| card.name == name }
@@ -69,7 +70,7 @@ class RailsInflectionUpdates < Card::Migration::Core
       end
     end
 
-    cards_with_css = Card.search type: %w(in html css scss)
+    cards_with_css = Card.search type: %w[in html css scss]
     cards_with_css.each do |card|
       new_content = card.db_content
       content_changed = false

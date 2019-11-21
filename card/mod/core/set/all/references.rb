@@ -5,7 +5,7 @@
 # the "referee". The reference itself has its own class (Card::Reference),
 # which handles id-based reference tracking.
 
-PARTIAL_REF_CODE = "P".freeze
+PARTIAL_REF_CODE = "P"
 
 # cards that refer to self
 def referers
@@ -53,6 +53,7 @@ def replace_reference_syntax old_name, new_name
   obj_content.find_chunks(Card::Content::Chunk::Reference).select do |chunk|
     next unless (old_ref_name = chunk.referee_name)
     next unless (new_ref_name = old_ref_name.swap old_name, new_name)
+
     chunk.referee_name = chunk.replace_reference old_name, new_name
     refs = Card::Reference.where referee_key: old_ref_name.key
     refs.update_all referee_key: new_ref_name.key
@@ -75,12 +76,14 @@ def create_references_out
     interpret_reference ref_hash, referee_name, ref_type
   end
   return if ref_hash.empty?
+
   Card::Reference.mass_insert reference_values_array(ref_hash)
 end
 
 # delete references from this card
 def delete_references_out
   raise "id required to delete references" if id.nil?
+
   Card::Reference.where(referer_id: id).delete_all
 end
 
@@ -91,6 +94,7 @@ end
 # }
 def interpret_reference ref_hash, referee_name, ref_type
   return unless referee_name # eg commented nest has no referee_name
+
   referee_name = referee_name.to_name
   referee_key = referee_name.key
   return if referee_key == key # don't create self reference
@@ -173,6 +177,7 @@ event :update_referer_content, :finalize,
       on: :update, after: :name_change_finalized, when: :update_referers do
   referers.each do |card|
     next if card.structure
+
     card.skip_event! :validate_renaming, :check_permissions
     card.content = card.replace_reference_syntax name_before_last_save, name
     attach_subcard card

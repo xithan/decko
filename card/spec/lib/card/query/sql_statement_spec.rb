@@ -12,7 +12,7 @@ RSpec.describe Card::Query::SqlStatement do
     end
 
     it "does not break count" do
-      expect(Card.count_by_wql({ match: "two", offset: 1 }))
+      expect(Card.count_by_wql(match: "two", offset: 1))
         .to eq(cards_matching_two.length)
     end
   end
@@ -29,7 +29,7 @@ RSpec.describe Card::Query::SqlStatement do
       Card::Auth.as_bot do
         Card.create name: "C+*self+*read", type: "Pointer", content: "[[R1]]"
       end
-      expect(run_query(plus: "A")).to eq(%w(B D E F))
+      expect(run_query(plus: "A")).to eq(%w[B D E F])
     end
 
     context "when nested" do

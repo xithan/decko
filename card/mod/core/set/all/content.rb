@@ -5,7 +5,7 @@ end
 def content
   structured_content || standard_content
 end
-alias raw_content content #DEPRECATED!
+alias_method :raw_content, :content # DEPRECATED!
 
 def content?
   content.present?

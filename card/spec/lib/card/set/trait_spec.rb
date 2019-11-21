@@ -1,6 +1,5 @@
 # -*- encoding : utf-8 -*-
 
-
 describe Card::Set::Trait do
   class Card
     module Set
@@ -55,6 +54,7 @@ describe Card::Set::Trait do
         # test API doesn't support sets for event
         # so we check the name
         return unless name == "joke"
+
         aggregate_failures do
           expect(write_card.type_id).to eq(Card::PhraseID)
           # expect(write_card.left).to be_instance_of(Card)
@@ -69,6 +69,7 @@ describe Card::Set::Trait do
       in_stage :prepare_to_validate, on: :create,
                                      trigger: -> { subject } do
         return unless name == "joke"
+
         aggregate_failures do
           # expect(read_card.type_id).to eq(Card::PhraseID)
           expect(read_card.left).to be_instance_of(Card)

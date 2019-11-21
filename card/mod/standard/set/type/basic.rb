@@ -29,11 +29,12 @@ format :html do
   def toc_items content
     toc = []
     dep = 1
-    content.gsub!(/<(h\d)>(.*?)<\/h\d>/i) do |match|
+    content.gsub!(%r{<(h\d)>(.*?)</h\d>}i) do |match|
       if $LAST_MATCH_INFO
         tag, value = $LAST_MATCH_INFO[1, 2]
         value = strip_tags(value).strip
         next if value.empty?
+
         item = { value: value, uri: URI.escape(value) }
         case tag.downcase
         when "h1"

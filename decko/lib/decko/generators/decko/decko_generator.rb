@@ -3,7 +3,7 @@ require "rails/generators/app_base"
 class DeckoGenerator < Rails::Generators::AppBase
   # class DeckoGenerator < Rails::Generators::AppGenerator
 
-  source_root File.expand_path("../templates", __FILE__)
+  source_root File.expand_path("templates", __dir__)
 
   class_option "mod-dev",
                type: :boolean, aliases: "-m", default: false, group: :runtime,
@@ -109,7 +109,7 @@ class DeckoGenerator < Rails::Generators::AppBase
     directory "script" do |content|
       "#{shebang}\n" + content
     end
-    chmod "script", 0755 & ~File.umask, verbose: false
+    chmod "script", 0o755 & ~File.umask, verbose: false
   end
 
   public_task :run_bundle
@@ -127,6 +127,7 @@ class DeckoGenerator < Rails::Generators::AppBase
 
   def database_gemfile_entry
     return [] if options[:skip_active_record]
+
     gem_name, gem_version = gem_for_database
     msg = "Use #{options[:database]} as the database for Active Record"
     GemfileEntry.version gem_name, gem_version, msg
@@ -164,6 +165,7 @@ class DeckoGenerator < Rails::Generators::AppBase
 
   def prompt_for_gem_path
     return if @gem_path.present?
+
     @gemfile_gem_path =
       @gem_path = ask("Enter the path to your local decko gem installation: ")
   end
@@ -200,17 +202,19 @@ class DeckoGenerator < Rails::Generators::AppBase
   end
 
   def mysql_socket
-    @mysql_socket ||= [
-      "/tmp/mysql.sock",                        # default
-      "/var/run/mysqld/mysqld.sock",            # debian/gentoo
-      "/var/tmp/mysql.sock",                    # freebsd
-      "/var/lib/mysql/mysql.sock",              # fedora
-      "/opt/local/lib/mysql/mysql.sock",        # fedora
-      "/opt/local/var/run/mysqld/mysqld.sock",  # mac + darwinports + mysql
-      "/opt/local/var/run/mysql4/mysqld.sock",  # mac + darwinports + mysql4
-      "/opt/local/var/run/mysql5/mysqld.sock",  # mac + darwinports + mysql5
-      "/opt/lampp/var/mysql/mysql.sock"         # xampp for linux
-    ].find { |f| File.exist?(f) } unless RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
+    unless RbConfig::CONFIG["host_os"] =~ /mswin|mingw/
+      @mysql_socket ||= [
+        "/tmp/mysql.sock",                        # default
+        "/var/run/mysqld/mysqld.sock",            # debian/gentoo
+        "/var/tmp/mysql.sock",                    # freebsd
+        "/var/lib/mysql/mysql.sock",              # fedora
+        "/opt/local/lib/mysql/mysql.sock",        # fedora
+        "/opt/local/var/run/mysqld/mysqld.sock",  # mac + darwinports + mysql
+        "/opt/local/var/run/mysql4/mysqld.sock",  # mac + darwinports + mysql4
+        "/opt/local/var/run/mysql5/mysqld.sock",  # mac + darwinports + mysql5
+        "/opt/lampp/var/mysql/mysql.sock"         # xampp for linux
+      ].find { |f| File.exist?(f) }
+    end
   end
 
   ### the following is straight from rails and is focused on checking
@@ -234,14 +238,14 @@ class DeckoGenerator < Rails::Generators::AppBase
       Decko.application.class.name.sub(/::Application$/, "")
   end
 
-  alias defined_app_const_base? defined_app_const_base
+  alias_method :defined_app_const_base?, :defined_app_const_base
 
   def app_const_base
     @app_const_base ||= defined_app_const_base ||
                         app_name.gsub(/\W/, "_").squeeze("_").camelize
   end
 
-  alias camelized app_const_base
+  alias_method :camelized, :app_const_base
 
   def app_const
     @app_const ||= "#{app_const_base}::Application"

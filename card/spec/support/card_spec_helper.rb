@@ -3,7 +3,6 @@
   Dir[load_path].each { |f| require f }
 end
 
-
 class Card
   # to be included in  RSpec::Core::ExampleGroup
   module SpecHelper
@@ -18,6 +17,7 @@ class Card
     def login_as user
       Card::Auth.current_id = (uc = Card[user.to_s]) && uc.id
       return unless @request
+
       Card::Env.session[Card::Auth.session_user_key] = Card::Auth.current_id
       @request.session[Card::Auth.session_user_key] = Card::Auth.current_id
       # warn "(ath)login_as #{user.inspect}, #{Card::Auth.current_id}, "\
@@ -93,7 +93,7 @@ class Card
 
     def bucket_credentials_from_yml_file
       yml_file = ENV["BUCKET_CREDENTIALS_PATH"] ||
-                 File.expand_path("../bucket_credentials.yml", __FILE__)
+                 File.expand_path("bucket_credentials.yml", __dir__)
       File.exist?(yml_file) && YAML.load_file(yml_file).deep_symbolize_keys
     end
 

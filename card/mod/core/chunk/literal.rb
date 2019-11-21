@@ -12,7 +12,7 @@ class Card
                     "{" => /\A\\\{\{[^\}]*\}\}/ }.freeze
         Card::Content::Chunk.register_class self,
                                             prefix_re: '\\\\(?:\\[\\[|\\{\\{)',
-                                            idx_char:  '\\'
+                                            idx_char: '\\'
 
         def self.full_re prefix
           FULL_RE[prefix[1, 1]]
