@@ -64,13 +64,17 @@ class Card
 
       # iterate through each format associated with a set
       def each_format set
-        set_type = set.abstract_set? ? :abstract : :nonbase
-        format_type = "#{set_type}_format".to_sym
-        modules[format_type].each_pair do |format, set_format_mod_hash|
-          next unless (format_mods = set_format_mod_hash[set.shortname])
+        each_format_with_mods set do |format, mods_for_set|
+          next unless (format_mods = mods_for_set[set.shortname])
 
           yield format, format_mods
         end
+      end
+
+      def each_format_with_mods set
+        set_type = set.abstract_set? ? :abstract : :nonbase
+        format_type = "#{set_type}_format".to_sym
+        modules[format_type].each_pair { |*args| yield(*args) }
       end
 
       def applicable_format? format, except, only

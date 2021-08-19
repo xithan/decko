@@ -6,15 +6,15 @@ class Card
   # Search and Set cards use Card::Query to query the database, and it's also
   # frequently used directly in code.
   #
-  # Query "statements" (objects, really) are made in WQL (Wagn Query
-  # Language). Because WQL is used by Deckers, the primary language
-  # documentation is on wagn.org. (https://decko.org/WQL_Syntax). Note that the
+  # Query "statements" (objects, really) are made in CQL (Card Query
+  # Language). Because CQL is used by Sharks, the primary language
+  # documentation is on decko.org. (https://decko.org/CQL_Syntax). Note that the
   # examples there are in JSON, like Search card content, but statements in
   # Card::Query are in ruby form.
   #
   # In Decko's current form, Card::Query generates and executes SQL statements.
   # However, the SQL generation is largely (not yet fully) separated from the
-  # WQL statement interpretation.
+  # CQL statement interpretation.
   #
   # The most common way to use Card::Query is as follows:
   #     list_of_cards = Card::Query.run(statement)
@@ -37,37 +37,39 @@ class Card
     require "card/query/clause"
     require "card/query/card_query"
     require "card/query/sql_statement"
+
     # Card::Query::CardQuery
-    # After conversion, ATTRIBUTES is a Hash where the key is the attribute
+    # After conversion, @attributes is a Hash where the key is the attribute
     # and the value is the attribute type:
     # { id: :basic, name: :basic, key: :basic ...}
     # This is used for rapid attribute type lookups in the interpretation phase.
-    ATTRIBUTES = {
+    @attributes = {
       # Each of the "basic" fields corresponds directly to a database field.
       # their values are translated fairly directly into SQL-safe values.
-      # (These are referred to as "properties" in WQL documentation. Need to
+      # (These are referred to as "properties" in CQL documentation. Need to
       # reconcile #EFM)
-      basic:           %i[id name key type_id content left_id right_id
-                          creator_id updater_id codename read_rule_id],
+      basic: %i[id name key type_id content left_id right_id
+                creator_id updater_id codename read_rule_id],
       # "Relational" values can involve tying multiple queries together
-      relational:      %i[type
-                          part left right
-                          editor_of edited_by last_editor_of last_edited_by
-                          creator_of created_by
-                          updater_of updated_by
-                          link_to linked_to_by
-                          include included_by
-                          nest nested_by
+      relational: %i[type
+                     part left right
+                     editor_of edited_by last_editor_of last_edited_by
+                     creator_of created_by
+                     updater_of updated_by
+                     link_to linked_to_by
+                     include included_by
+                     nest nested_by
 
-                          refer_to referred_to_by
-                          member_of member
+                     refer_to referred_to_by
+                     member_of member
 
-                          found_by
-                          not sort match name_match complete],
+                     found_by
+                     not sort match name_match complete],
 
       plus_relational: %i[plus left_plus right_plus],
-      conjunction:     %i[and or all any],
-      ignore:          %i[prepend append view params vars size]
+      conjunction: %i[and or all any],
+      ignore: %i[prepend append vars],
+      deprecated: %i[view params size]
     }.each_with_object({}) do |pair, h|
       pair[1].each { |v| h[v] = pair[0] }
     end
@@ -78,15 +80,16 @@ class Card
                 .each_with_object({}) { |v, h| h[v] = nil }
 
     OPERATORS =
-      %w[!= = =~ < > in ~].each_with_object({}) { |v, h| h[v] = v }.merge(
-        {
-          eq: "=", gt: ">", lt: "<", match: "~", ne: "!=", "not in": "not in"
-        }.stringify_keys
+      %w[!= = =~ < > in ~ is].each_with_object({}) { |v, h| h[v] = v }.merge(
+        { eq: "=", gt: ">", lt: "<", match: "~", ne: "!=",
+          "not in": "not in", "is not": "is not", "!": "is not" }.stringify_keys
       )
 
     DEFAULT_ORDER_DIRS = { update: "desc", relevance: "desc" }.freeze
 
     class << self
+      attr_accessor :attributes
+
       def new statement, comment=nil
         Query::CardQuery.new statement, comment
       end
@@ -101,10 +104,12 @@ class Card
 
       def safe_sql txt
         txt = txt.to_s
-        raise "WQL contains disallowed characters: #{txt}" if txt.match?(/[^\w\s*().,]/)
+        raise "CQL contains disallowed characters: #{txt}" if txt.match?(/[^\w\s*().,]/)
 
         txt
       end
     end
+
+    delegate :attributes, to: :class
   end
 end

@@ -22,8 +22,7 @@ class Card
     end
 
     def message_from_card
-      I18n.t :exception_for_card,
-             scope: %i[lib card error], cardname: card.name, message: card_message_text
+      ::I18n.t :lib_exception_for_card, cardname: card.name, message: card_message_text
     end
 
     def backtrace
@@ -71,7 +70,7 @@ class Card
                                  ActiveRecord::RecordInvalid]
     end
 
-    # error in WQL query
+    # error in CQL query
     class BadQuery < UserError
     end
 

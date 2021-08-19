@@ -137,14 +137,13 @@ class Card
       end
 
       def unknown_codename! mark
-        raise Card::Error::CodenameNotFound, I18n.t(:exception_unknown_codename,
-                                                    scope: "lib.card.codename",
-                                                    codename: mark)
+        raise Card::Error::CodenameNotFound,
+              ::I18n.t(:lib_exception_unknown_codename, codename: mark)
       end
 
       def id_constant codename, id=nil
         id ||= id! codename
-        Card.const_get_or_set(codename.to_s.camelize + "ID") { id }
+        Card.const_get_or_set("#{codename.to_s.camelize}ID") { id }
       end
     end
 

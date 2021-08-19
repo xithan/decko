@@ -1,14 +1,13 @@
 # -*- encoding : utf-8 -*-
 
-class HeadRule < Card::Migration::Core
+class HeadRule < Cardio::Migration::Core
   def up
     update_card! :head, type_id: Card::SettingID
-    ensure_card [:all, :head],
+    ensure_card %i[all head],
                 type_id: Card::HtmlID,
                 content: "{{*head|core}}"
-    ensure_card [:head, :right, :help],
+    ensure_card %i[head right help],
                 content: "head tag content"
-    ensure_card [:head, :right, :default], type_id: Card::HtmlID
-
+    ensure_card %i[head right default], type_id: Card::HtmlID
   end
 end

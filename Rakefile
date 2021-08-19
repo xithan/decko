@@ -1,17 +1,17 @@
-# Note: these tasks are not in any gem and are thus not available to mod
+# -*- encoding : utf-8 -*-
+
+require "./decko_gem"
+
+DOCKER_IMAGES = %w[base bundled mysql postgres sandbox].map { |name| "decko-#{name}" }
+
+# NOTE: these tasks are not in any gem and are thus not available to mod
 # developers.  Therefore they should contain only tasks for core developers.
 
 task :push_gems do
-  %w(card cardname decko).each do |gem|
-    system %(
-      cd #{gem}
-      rm *.gem
-      gem build #{gem}.gemspec
-      gem push #{gem}-*.gem
-    )
-    # gem push #{gem}-#{version}.gem
-    # explicit version name is ultimately safer, but we need the wildcard
-    # version while card has weird (pre-2.0) versioning
+  each_gem do |dir, gem|
+    gem ||= dir
+    v = gem == :card ? DeckoGem.card_version : version
+    system %(cd #{dir}; #{push_gem gem, v})
   end
 end
 
@@ -26,18 +26,35 @@ task :release do
   )
 end
 
-task :cp_tmpsets do
-  system %(
-    cd ../decko-tmpsets
-    rm -rf set*
-    cp -r ../sites/core-dev/tmp/set* .
-    git commit -a -m 'updated from core-dev'
-    git push; git push decko
-    cd ../gem
-    git submodule update --remote
+task :build_images do
+  system "docker pull phusion/passenger-full:latest"
+  system "cd docker/template; bundle update"
+
+  DOCKER_IMAGES.each do |i|
+    system "cd docker; "\
+           "docker build -f repos/#{i}.dockerfile -t ethn/#{i} -t ethn/#{i}:v#{version} ."
+    system "docker push ethn/#{i}:v#{version}"
+  end
+end
+
+#------ Support methods -----------
+
+def each_gem
+  yield :cardname
+  yield :card
+  Dir.each_child("mod") { |mod| yield "mod/#{mod}", "card-mod-#{mod}" }
+  yield :decko
+  Dir.each_child("support") { |lib| yield "support/#{lib}", lib }
+end
+
+def push_gem gem, version, prefix=""
+  %(
+    rm *.gem
+    gem build #{prefix}#{gem}.gemspec
+    gem push #{prefix}#{gem}-#{version}.gem
   )
 end
 
 def version
-  File.open(File.expand_path("../card/VERSION", __FILE__)).read.chomp
+  DeckoGem.decko_version
 end

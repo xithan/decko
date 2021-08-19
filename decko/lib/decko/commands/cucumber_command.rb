@@ -1,11 +1,14 @@
-require File.expand_path("../command", __FILE__)
+# load the application so we can look in mods
+require APP_PATH
+require "cardio/commands/command"
+require "cardio/mod/dirs"
 
 module Decko
-  module Commands
-    class CucumberCommand < Command
+  class Commands
+    class CucumberCommand < Cardio::Commands::Command
+      require "decko/commands/cucumber_command/parser"
+
       def initialize args
-        require "decko"
-        require "./config/environment"
         @decko_args, @cucumber_args = split_args args
         @opts = {}
         Parser.new(@opts).parse!(@decko_args)
@@ -13,17 +16,14 @@ module Decko
 
       def command
         @cmd ||=
-          "#{env_args} #{@opts[:executer] || "bundle exec"} cucumber #{require_args} #{feature_args}"
+          "#{env_args} #{@opts[:executer] || 'bundle exec'} " \
+          "cucumber #{require_args} #{feature_args}"
       end
 
       private
 
       def env_args
-        env_args = @opts[:env].join " "
-        # turn coverage off if not all cukes run
-        env_args << " COVERAGE=false" if @cucumber_args.present?
-        env_args << " RAILS_GROUPS=test,debug"
-        env_args
+        @opts[:env].join " "
       end
 
       def feature_args
@@ -40,12 +40,10 @@ module Decko
       end
 
       def feature_paths
-        Card::Mod.dirs.map do |p|
+        Cardio::Mod.dirs.map do |p|
           Dir.glob "#{p}/features"
         end.flatten
       end
     end
   end
 end
-
-require File.expand_path("../cucumber_command/parser", __FILE__)

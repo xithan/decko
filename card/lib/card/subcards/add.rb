@@ -11,9 +11,10 @@ class Card
       #
       # @example Add a subcard that is added in the integration phase
       #     (and hence doesn't hold up the transaction for the main card)
-      #   add 'spoiler', content: 'John Snow is a Targaryen',
-      #                  transact_in_stage: :integrate
+      #   add 'spoiler', content: 'John Snow is a Targaryen'
       #   add card_obj, delayed: true
+
+      include Args
 
       def << value
         add value
@@ -30,7 +31,7 @@ class Card
 
       def add *args
         case args.first
-        when Card then new_by_card(*args)
+        when Card then new_by_card args.first
         when Hash then add_hash args.first
         else new_by_attributes(*args)
         end
@@ -50,56 +51,33 @@ class Card
       end
       alias_method :add_field, :add_child
 
-      def new_by_card card, opts={}
+      def new_by_card card
         card.supercard = @context_card
         if !card.name.simple? && card.name.field_of?(@context_card.name)
           card.superleft = @context_card
         end
         @keys << card.key
         Card.write_to_soft_cache card
-        card.director = @context_card.director.subdirectors.add(card, opts)
+        card.director = @context_card.director.subdirectors.add card
         card
       end
 
       def new_by_attributes name, attributes={}
-        attributes ||= {}
+        attributes = attributes&.symbolize_keys || {}
         absolute_name = absolutize_subcard_name name
         subcard_args = extract_subcard_args! attributes
-        t_i_s = attributes.delete(:transact_in_stage)
         card = initialize_by_attributes absolute_name, attributes
-        subcard = new_by_card card, transact_in_stage: t_i_s
+        subcard = new_by_card card
         card.subcards.add subcard_args
         subcard
       end
 
       def initialize_by_attributes name, attributes
+        attributes[:supercard] ||= @context_card
         Card.assign_or_newish name, attributes, local_only: true
       end
 
-      # TODO: this method already exists as card instance method in
-      #   tracked_attributes.rb. Find a place for it where its accessible
-      #   for both. There is one important difference. The keys are symbols
-      # here instead of strings
-      def extract_subcard_args! args
-        subcards = args.delete(:subcards) || {}
-        if (subfields = args.delete(:subfields))
-          subfields.each_pair do |key, value|
-            subcards[normalize_subfield_key(key)] = value
-          end
-        end
-        args.keys.each do |key|
-          subcards[key] = args.delete(key) if key =~ /^\+/
-        end
-        subcards
-      end
-
       private
-
-      # ensure a leading '+'
-      def normalize_subfield_key key
-        key = Card::Codename.name(key) if key.is_a?(Symbol) && Card::Codename.exist?(key)
-        key.to_name.prepend_joint
-      end
 
       # Handles hash with several subcards
       def multi_add args

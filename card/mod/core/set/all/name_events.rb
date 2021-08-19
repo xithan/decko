@@ -1,117 +1,121 @@
-# STAGE: prepare to validate
-
-event :set_autoname, :prepare_to_validate, on: :create do
-  if name.blank? && (autoname_card = rule_card(:autoname))
-    self.name = autoname autoname_card.db_content
-    # FIXME: should give placeholder in approve phase
-    # and finalize/commit change in store phase
-    autoname_card.refresh.update_column :db_content, name
-  end
-end
-
 # STAGE: validate
 
-event :validate_name, :validate, on: :save, changed: :name do
+event :validate_name, :validate, on: :save, changed: :name, when: :no_autoname? do
   validate_legality_of_name
   return if errors.any?
+
   Card.write_to_soft_cache self
   validate_uniqueness_of_name
 end
 
+# called by validate_name
 event :validate_uniqueness_of_name, skip: :allowed do
-  # validate uniqueness of name
-
-  puts "validating uniqueness of key #{key}: #{Card::Lexicon.id key}, #{id}"
   return unless (existing_id = Card::Lexicon.id key) && existing_id != id
   # The above is a fast check but cannot detect if card is in trash
 
-  puts "failed first check.  now looking up id: #{existing_id}"
   # TODO: perform the following as a remote-only fetch (not yet supported)
   return unless (existing_card = Card.where(id: existing_id, trash: false).take)
-  puts "failed second check. existing card = #{existing_card.name}"
 
-  errors.add :name, tr(:error_name_exists, name: existing_card.name)
+  errors.add :name, t(:core_error_name_exists, name: existing_card.name)
 end
 
+# called by validate_name
 event :validate_legality_of_name do
   if name.length > 255
-    errors.add :name, tr(:error_too_long, length: name.length)
+    errors.add :name, t(:core_error_too_long, length: name.length)
   elsif name.blank?
-    errors.add :name, tr(:error_blank_name)
-  elsif name.parts.include? ""
-    errors.add :name, tr(:is_incomplete)
+    errors.add :name, t(:core_error_blank_name)
+  elsif name_incomplete?
+    errors.add :name, t(:core_is_incomplete)
   elsif !name.valid?
-    errors.add :name, tr(:error_banned_characters, banned: Card::Name.banned_array * " ")
-  elsif changing_existing_tag_to_junction?
-    errors.add :name, tr(:error_name_tag, name: name)
+    errors.add :name, t(:core_error_banned_characters,
+                        banned: Card::Name.banned_array * " ")
+  elsif changing_existing_tag_to_compound?
+    errors.add :name, t(:core_error_name_tag, name: name)
   end
 end
 
-event :validate_key, after: :validate_name, on: :save do
+event :validate_key, after: :validate_name, on: :save, when: :no_autoname? do
   if key.empty?
-    errors.add :key, tr(:error_blank_key) if errors.empty?
+    errors.add :key, t(:core_error_blank_key) if errors.empty?
   elsif key != name.key
-    errors.add :key, tr(:error_wrong_key, key: key, name: name)
+    errors.add :key, t(:core_error_wrong_key, key: key, name: name)
   end
+end
+
+event :validate_renaming, :validate, on: :update, changed: :name, skip: :allowed do
+  return if name_before_act&.to_name == name # just changing to new variant
+
+  errors.add :content, t(:core_cannot_change_content) if content_is_changing?
+  errors.add :type, t(:core_cannot_change_type) if type_is_changing?
+  detect_illegal_compound_names
 end
 
 # STAGE: store
 
 event :expire_old_name, :store, changed: :name, on: :update do
-  ActManager.expirees << name_before_act
+  Director.expirees << name_before_act
 end
 
-event :update_lexicon_on_create, :finalize, changed: :name, on: :create do
-  Card::Lexicon.add self
-end
+event :rename_in_trash, after: :expire_old_name, on: :update do
+  existing_card = Card.find_by_key_and_trash name.key, true
+  return if !existing_card || existing_card == self
 
-event :update_lexicon_on_rename, :finalize, changed: :name, on: :update do
-  Card::Lexicon.update self
-end
-
-def lex
-  simple? ? key : [left_id, right_id]
-end
-
-def old_lex
-  if left_id_before_last_save
-    [left_id_before_last_save, right_id_before_last_save]
-  else
-    name_before_last_save.to_name.key
-  end
+  existing_card.rename_as_trash_obstacle
 end
 
 event :prepare_left_and_right, :store, changed: :name, on: :save do
   return if name.simple?
+
   prepare_side :left
   prepare_side :right
 end
 
-def prepare_side side
-  side_id = send "#{side}_id"
-  sidename = name.send "#{side}_name"
-  prepare_obstructed_side(side, side_id, sidename) ||
-    prepare_new_side(side, side_id, sidename)
+event :update_lexicon, :finalize, changed: :name, on: :save do
+  lexicon_action = @action == :create ? :add : :update
+  Card::Lexicon.send lexicon_action, self
 end
 
-def prepare_new_side side, side_id, sidename
-  return unless side_id == -1 || !Card[side_id]&.real?
-
-  sidecard = ActManager.card(sidename) || add_subcard(sidename)
-  send "#{side}_id=", sidecard
+event :cascade_name_changes, :finalize, on: :update, changed: :name do
+  each_descendant { |d| d.rename_as_descendant !skip_update_referers? }
 end
 
-def prepare_obstructed_side side, side_id, sidename
-  return unless side_id && side_id == id
-  clear_name sidename
-  send "#{side}_id=", add_subcard(sidename)
-  true
+protected
+
+def rename_as_trash_obstacle
+  self.name = "#{name}*trash"
+  rename_in_trash_without_callbacks
+  save!
+end
+
+def rename_as_descendant referers=true
+  self.action = :update
+  referers ? update_referer_content : update_referer_references_out
+  refresh_references_in
+  refresh_references_out
+  expire
+  Card::Lexicon.update self
 end
 
 private
 
-def changing_existing_tag_to_junction?
-  return false unless changing_name_to_junction?
+def name_incomplete?
+  name.parts.include?("") && !superleft&.autoname?
+end
+
+def changed_from_simple_to_compound?
+  name.compound? && name_before_act.to_name.simple?
+end
+
+def detect_illegal_compound_names
+  return unless changed_from_simple_to_compound? && child_ids(:right).present?
+
+  errors.add :name, "illegal name change; existing names end in +#{name_before_act}"
+end
+
+def changing_existing_tag_to_compound?
+  return false unless changing_name_to_compound?
+
   name_in_use_as_tag?
 end
 
@@ -119,8 +123,8 @@ def name_in_use_as_tag?
   !Card.where(right_id: id, trash: false).take.nil?
 end
 
-def changing_name_to_junction?
-  name.junction? && simple?
+def changing_name_to_compound?
+  name.compound? && simple?
 end
 
 def old_name_in_way? sidecard
@@ -134,4 +138,26 @@ def clear_name name
   Card.expire name
   Card::Lexicon.cache.reset # probably overkill, but this for an edge case...
   # Card::Lexicon.delete id, key
+end
+
+def prepare_side side
+  side_id = send "#{side}_id"
+  sidename = name.send "#{side}_name"
+  prepare_obstructed_side(side, side_id, sidename) ||
+    prepare_new_side(side, side_id, sidename)
+end
+
+def prepare_new_side side, side_id, sidename
+  return unless side_id == -1 || !Card[side_id]&.real?
+
+  sidecard = Director.card(sidename) || add_subcard(sidename)
+  send "#{side}_id=", sidecard
+end
+
+def prepare_obstructed_side side, side_id, sidename
+  return unless side_id && side_id == id
+
+  clear_name sidename
+  send "#{side}_id=", add_subcard(sidename)
+  true
 end

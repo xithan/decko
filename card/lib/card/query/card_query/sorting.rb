@@ -16,10 +16,9 @@ class Card
         def sort val
           return nil unless full?
 
-          sort_field = val[:return] || "db_content"
-          val = val.clone
-          item = val.delete(:item) || "left"
-          sort_by val, item, sort_field
+          interpret_sort_hash val do |value, item, sort_field|
+            sort_by value, item, sort_field
+          end
         end
 
         def sort_by val, item, sort_field
@@ -47,7 +46,7 @@ class Card
 
         def sort_by_count val, item
           method_name = "sort_by_count_#{item}"
-          sort_by_count_not_implemented :count, item unless respond_to? method_name
+          sort_method_not_implemented :count, item unless respond_to? method_name
           send method_name, val
         end
 
@@ -94,6 +93,15 @@ class Card
           s.conditions_on_join = card_join if conditions_on_join
           s.interpret val
           s
+        end
+
+        private
+
+        def interpret_sort_hash val
+          val = val.symbolize_keys
+          item = val.delete(:item) || "left"
+          sort_field = val[:return] || "db_content"
+          yield val, item, sort_field
         end
       end
     end

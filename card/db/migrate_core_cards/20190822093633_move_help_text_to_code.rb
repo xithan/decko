@@ -1,13 +1,12 @@
 # -*- encoding : utf-8 -*-
 
-class MoveHelpTextToCode < Card::Migration::Core
+class MoveHelpTextToCode < Cardio::Migration::Core
   def up
     update_card! "*sidebar", codename: "sidebar"
     Card::Cache.reset_all
 
     # avoid that "list" as input option gets the description of the cardtype "list"
-    ensure_card [:input, :right, :options_label], "options description"
-
+    ensure_card %i[input right options_label], "options description"
 
     remove_setting_help_rules
     remove_search_help_rules

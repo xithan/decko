@@ -1,22 +1,15 @@
 # -*- encoding : utf-8 -*-
 
-class InputType < Card::Migration::Core
+class InputType < Cardio::Migration::Core
   def up
-    update_card! :input, name: "*input type",
-                         codename: "input_type",
-                         update_referers: true
-    update_card! :options, name: "*content options",
-                           codename: "content_options",
-                           update_referers: true
+    update_card! :input, name: "*input type", codename: "input_type"
+    update_card! :options, name: "*content options", codename: "content_options"
     update_card! :options_label, name: "*content option view",
-                                 codename: "content_option_view",
-                                 update_referers: true
+                                 codename: "content_option_view"
 
     Card::Cache.reset_all
 
     ensure_card %i[all content_option_view], content: "smart_label"
-    Card.search right: :content_option_view, left: { not: :all } do |cov_rule|
-      cov_rule.delete!
-    end
+    Card.search right: :content_option_view, left: { not: :all }, &:delete!
   end
 end

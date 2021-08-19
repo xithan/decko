@@ -1,65 +1,128 @@
 version: v1.0
-name: First pipeline example
+name: Decko Standard
 agent:
   machine:
     type: e1-standard-2
     os_image: ubuntu1804
+global_job_config:
+  env_vars:
+    - name: BUNDLE_PATH
+      value: "~/bundle/"
+    - name: DECKO_REPO_PATH
+      value: "~/decko"
+  secrets:
+    - name: s3-credentials
+    - name: code-climate
+  prologue:
+    commands:
+      - checkout # semaphore does git checkout and cds into decko
+      - sem-version ruby 2.6.3 # because pry-stack_explorer doesn't work in 2.5
+      # - sem-version ruby 3.0.1 # temporary
+      - alias be='bundle exec'
+      - git submodule init
+      # - git submodule status > substat.txt # needed for sem submodule caching
+      # - ruby .semaphore/submodules.rb restore # restore submodules from sem cache
 
 blocks:
-  - name: "Build"
+  - name: Smoke
+    task:
+      prologue:
+        commands:
+          # occasionally clear: `cache delete bundle-gems-baseline`
+          - cache restore bundle-gems-baseline
+          - cache restore bundle-gems-$(checksum Gemfile.lock)
+          - bundle install
+          - cache store bundle-gems-$(checksum Gemfile.lock) ~/bundle
+          - cache store bundle-gems-baseline ~/bundle
+
+          - sem-service start mysql
+          - git submodule update card/db/seed
+
+      jobs:
+        - name: New Shark and Monkey Decks
+          commands:
+            # NEW SHARK DECK
+            - be decko new shark
+            - cd shark
+            - be decko seed
+
+            - cd .. # note: faster than making a separate job.
+
+            # NEW MONKEY DECK
+            - be decko new monkey --monkey
+            - cd monkey
+            - be decko seed
+
+  - name: Unit Tests
     task:
       env_vars:
-        - name: APP_ENV
-          value: prod
+        - name: REPO_TMPSETS
+          value: "true"
+      prologue:
+        commands:
+          - sem-service start mysql
+          - git submodule update
+          - cache restore bundle-gems-$(checksum Gemfile.lock)
+          - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          - chmod +x ./cc-test-reporter
+
       jobs:
-      - name: Setup
-        command:
-          - git submodule sync
-          - git submodule update --init --recursive
-            cd /home/runner
+        - name: RSpec
+          commands:
+            - be decko new platypus --platypus
+            - cd platypus
+            - be decko seed --test
+            - be decko rspec
+      epilogue:
+        commands:
+          - cd -
+          - ./cc-test-reporter format-coverage --output "coverage/codeclimate.$SEMAPHORE_JOB_ID.json" -t simplecov
+          - aws s3 cp "coverage/codeclimate.$SEMAPHORE_JOB_ID.json" "s3://deckodev-test/$SEMAPHORE_PROJECT_NAME/$SEMAPHORE_GIT_BRANCH/coverage/$SEMAPHORE_WORKFLOW_ID/"
 
-            bundle update
-            # --path /home/runner/wagn/.semaphore-cache
-            cp /home/runner/bucket_credentials.yml /home/runner/decko/card/spec/support/bucket_credentials.yml
+  - name: Integration Tests
+    task:
+      env_vars:
+        - name: REPO_TMPSETS
+          value: "true"
+      prologue:
+        commands:
+          - sem-service start mysql
+          - git submodule update
+          - cache restore bundle-gems-$(checksum Gemfile.lock)
+          - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          - chmod +x ./cc-test-reporter
+          - be decko new platypus --platypus
+          - cd platypus
+          - be decko seed --test
 
-  - name: "Smoke tests"
+      jobs:
+        - name: Cypress
+          commands:
+            - RAILS_ENV=cypress bundle exec decko server -p 5002 -d
+            - cd ~/decko/decko/spec
+            - nvm use 15.7.0
+            - rm -rf node_modules
+            - yarn install --frozen-lockfile
+            - yarn run cypress run --record --key 15efb149-d03c-410b-bb10-6d3b1a82958e
+        - name: Cucumber
+          commands:
+            - RAILS_ENV=cucumber bundle exec decko cucumber
+
+      epilogue:
+        commands:
+          - cd ~/decko
+          - ./cc-test-reporter format-coverage --output "coverage/codeclimate.$SEMAPHORE_JOB_ID.json" -t simplecov
+          - aws s3 cp "coverage/codeclimate.$SEMAPHORE_JOB_ID.json" "s3://deckodev-test/$SEMAPHORE_PROJECT_NAME/$SEMAPHORE_GIT_BRANCH/coverage/$SEMAPHORE_WORKFLOW_ID/"
+
+  - name: Coverage Report
     task:
       jobs:
-      - name: Smoke
-        commands:
-          - checkout
-          - echo "make smoke"
-
-  - name: "Unit tests"
-    task:
-      jobs:
-      - name: RSpec
-        commands:
-          - checkout
-          - echo "make rspec"
-
-      - name: Lint code
-        commands:
-          - checkout
-          - echo "make lint"
-
-      - name: Check security
-        commands:
-          - checkout
-          - echo "make security"
-
-  - name: "Integration tests"
-    task:
-      jobs:
-      - name: Cucumber
-        commands:
-          - checkout
-          - echo "make cucumber"
-
-  - name: "Push Image"
-    task:
-      jobs:
-      - name: Push
-        commands:
-          - checkout
-          - echo "make docker.push"
+        - name: CodeClimate Coverage
+          commands:
+            - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+            - chmod +x ./cc-test-reporter
+            # SEMAPHORE_GIT_BRANCH is the destination branch when it's a PR.
+            # in those cases we probably want SEMAPHORE_GIT_PR_BRANCH.
+            - aws s3 sync "s3://deckodev-test/$SEMAPHORE_PROJECT_NAME/$SEMAPHORE_GIT_BRANCH/coverage/$SEMAPHORE_WORKFLOW_ID/" coverage/
+            - ./cc-test-reporter sum-coverage --output - --parts $(ls -1 coverage/ | wc -l) coverage/codeclimate.*.json > coverage/codeclimate.json
+            - ./cc-test-reporter upload-coverage

@@ -1,6 +1,6 @@
 # -*- encoding : utf-8 -*-
 
-class EmailTestContext < Card::Migration::Core
+class EmailTestContext < Cardio::Migration::Core
   def up
     ensure_card "*test context",
                 codename: :test_context
@@ -35,11 +35,13 @@ class EmailTestContext < Card::Migration::Core
 
   def update_if_unchanged name, content
     return if (card = Card[name]) && card.updater.codename != :wagn_bot
+
     ensure_card name, content: content
   end
 
   def add_test_context email_template, content
     return unless Card[email_template]
+
     ensure_card [email_template, :test_context],
                 content: content,
                 type_id: Card::PointerID

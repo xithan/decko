@@ -6,9 +6,9 @@ class Card
   # are responsible for defining and rendering _views_.
   #
   # However, monkeys (those who code in the Card/Decko framework) rarely write code
-  # directly in these classes. Instead they organize their code using {Card::Mods mods}.
+  # directly in these classes. Instead they organize their code using {Cardio::Mod mods}.
   #
-  # {Card::Mod} explains how to set up a mod.
+  # {Cardio::Mod} explains how to set up a mod.
   # {Card::Set::Format} explains how to use this and other format classes within a mod.
   # {Card::Set::Format::AbstractFormat} introduces the view API, which is organized with
   # these format classes.
@@ -20,6 +20,7 @@ class Card
     include Card::Env::Location
     include Nesting
     include Render
+    include Wrapper
     include ContextNames
     include Content
     include Error
@@ -31,6 +32,9 @@ class Card
 
     attr_reader :card, :parent, :main_opts, :modal_opts
     attr_accessor :form, :error_status, :rendered
+
+    delegate :basket, to: Set
+    delegate :session, :params, to: Env
 
     def self.view_caching?
       true
@@ -46,8 +50,7 @@ class Card
     def require_card_to_initialize!
       return if @card
 
-      msg = I18n.t :exception_init_without_card, scope: "lib.card.format"
-      raise Card::Error, msg
+      raise Card::Error, ::I18n.t(:lib_exception_init_without_card)
     end
 
     def include_set_format_modules
@@ -66,28 +69,8 @@ class Card
       end
     end
 
-    def params
-      Env.params
-    end
-
     def controller
       @controller || Env[:controller] ||= CardController.new
-    end
-
-    def session
-      Env.session
-    end
-
-    def template
-      @template ||= begin
-        c = controller
-        lookup_context = ActionView::LookupContext.new c.class.view_paths
-        t = ActionView::Base.new(
-          lookup_context, { _routes: c._routes }, c
-        )
-        t.extend c.class._helpers
-        t
-      end
     end
 
     def mime_type

@@ -11,7 +11,7 @@ class Card
   # web interface and are thus documented at https://decko.org/rules.
   #  - **Code rules** can be defined in a 'set module'.
   #
-  # The {Card::Mod} docs explain how to create mods and set_modules. This page explains
+  # The {Cardio::Mod} docs explain how to create mods and set_modules. This page explains
   # how those modules become useful.
   #
   # Suppose you have created a "mod" for managing your contacts called "contactmanager",
@@ -46,19 +46,8 @@ class Card
   #        b) Card::Set to provide API for the most common set methods.
   #
   module Set
-    require "card/set/event"
-    require "card/set/trait"
-    require "card/set/basket"
-    require "card/set/inheritance"
-    require "card/set/format"
-    require "card/set/advanced_api"
-    require "card/set/helpers"
-    require "card/set/i18n_scope"
-    require "card/set/loader"
-
     include Event::Api
     include Trait
-    include Basket
     include Inheritance
 
     include Format
@@ -66,20 +55,29 @@ class Card
     include Helpers
 
     extend I18nScope
-    extend Loader
+    extend Registrar
 
-    mattr_accessor :modules, :traits
+    mattr_accessor :modules, :traits, :basket
 
-    def self.reset_modules
-      self.modules = { base: [], base_format: {}, nonbase: {}, nonbase_format: {},
-                       abstract: {}, abstract_format: {} }
+    class << self
+      def reset
+        self.modules = {
+          base: [],     base_format: {},
+          nonbase: {},  nonbase_format: {},
+          abstract: {}, abstract_format: {}
+        }
+
+        self.basket = {}
+      end
     end
 
-    reset_modules
+    delegate :basket, to: Set
+
+    reset
 
     # SET MODULE API
     #
     # The most important parts of the set module API are views (see
-    # Card::Set::Format) and events (see Card::Set::Event)
+    # Card::Set::Format) and events (see Card::Set::Event:Api)
   end
 end

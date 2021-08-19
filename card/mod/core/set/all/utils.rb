@@ -41,7 +41,7 @@ module ClassMethods
 
   def resolve_file_attributes! attribs
     %i[image file].each do |attach|
-      next unless attribs[attach] && attribs[attach].is_a?(String)
+      next unless attribs[attach].is_a?(String)
 
       attribs[attach] = ::File.open(attribs[attach])
     end
@@ -79,6 +79,17 @@ def measure desc
 end
 # rubocop:enable Style/GlobalVars
 
+def mod_root modname
+  if (spec = Gem::Specification.find_by_name "card-mod-#{modname}")
+    spec.full_gem_path
+  else
+    "#{Cardio.gem_root}/mod/#{modname}"
+  end
+end
+
+delegate :t, to: ::I18n
+
 format do
+  delegate :t, to: ::I18n
   delegate :measure, to: :card
 end

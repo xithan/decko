@@ -1,5 +1,3 @@
-Gemfile
-Gemfile.lock
 .tags
 .tags_swap
 .idea/*
@@ -7,14 +5,11 @@ Gemfile.lock
 .jhw-cache
 .rvmrc
 .tm_properties
-.yardoc
 *.iml
-coverage
 log/*
+coverage
 pkg
-wagn*gem
-card*gem
-decko*gem
+*.gem
 *.project
 *.sqlite3
 *.DS_Store
@@ -26,3 +21,6 @@ test_work/*
 decko/spec/node_modules
 decko/spec/cypress/screenshots
 decko/spec/cypress/videos
+vendor
+docker/env
+docker/test

@@ -67,11 +67,11 @@ class Card
       def add_test_event stage, name, opts={}, &event_block
         # use random set module that is always included so that the
         # event applies to all cards
-        set_module = opts.delete(:set) || Card::Set::All::Fetch
+        set_module = opts.delete(:set) || Card::Set::All::Type
         if (only_for_card = opts.delete(:for))
           opts[:when] = proc { |c| c.name == only_for_card }
         end
-        Card::Set::Event.new(name, stage, opts, set_module, &event_block).register
+        Card::Set::Event.new(name, set_module).register stage, opts, &event_block
       end
 
       def remove_test_event stage, name
@@ -82,15 +82,17 @@ class Card
       # Turn delayed jobs on and run jobs after the given block.
       # If count is given check if it matches the number of created jobs.
       def with_delayed_jobs count=nil
-        Delayed::Worker.delay_jobs = true
-        expect(Delayed::Job.count).to eq(0), "expected delayed job to start with an empty queue"
+        delaying true, "did not start off empty"
         yield
-        if count
-          expect(Delayed::Job.count).to eq(count)
-        end
+        expect(Delayed::Job.count).to eq(count) if count
         Delayed::Worker.new.work_off
-        expect(Delayed::Job.count).to eq(0), "not all delayed jobs were executed"
-        Delayed::Worker.delay_jobs = false
+      ensure
+        delaying false, "not all jobs were executed"
+      end
+
+      def delaying mode, error
+        Cardio.delaying! mode
+        expect(Delayed::Job.count).to eq(0), "expected empty jobs queue: #{error}"
       end
     end
   end

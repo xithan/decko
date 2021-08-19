@@ -36,12 +36,17 @@ class Card
         handle_remainder
       end
 
+      def current_match
+        @chunk_class = Chunk.find_class_by_prefix @prefix, @chunk_list
+
+        # get the chunk class from the prefix
+        content_slice = @content[@position..-1]
+        @chunk_class.full_match content_slice, @prefix
+      end
+
       def match_prefices prefix_regexp
         while match_prefix prefix_regexp
-          @chunk_class = Chunk.find_class_by_prefix @prefix, @chunk_list
-          # get the chunk class from the prefix
-          content_slice = @content[@position..-1]
-          @match, @offset = @chunk_class.full_match content_slice, @prefix
+          @match, @offset = current_match
           # see whether the full chunk actually matches
           # (as opposed to bogus prefix)
           if @match # we have a chunk match
@@ -62,7 +67,7 @@ class Card
           # prefix of matched chunk
           @chunk_start = prefix_match.begin(0) + @position
           # content index of beginning of chunk
-          if prefix_match.begin(0) > 0
+          if prefix_match.begin(0).positive?
             # if matched chunk is not beginning of test string
             @interval_string += @content[@position..@chunk_start - 1]
             # hold onto the non-chunk part of the string
@@ -87,7 +92,7 @@ class Card
           @chunks << @chunk_class.new(@match, @content_object)
           # add the chunk to the chunk list
           @last_position = @position
-          # note that the end of the chunk was the last place where a
+          # NOTE: that the end of the chunk was the last place where a
           # chunk was found (so far)
           true
         end

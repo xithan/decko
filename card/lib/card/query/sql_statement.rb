@@ -71,7 +71,7 @@ class Card
         case field
         when :card, :raw then "#{table}.*"
         when :content    then "#{table}.db_content"
-        when :name, :key then "#{table}.#{field}, #{table}.id"
+        when :name, :key then "#{table}.name, #{table}.left_id, #{table}.right_id"
         when :count      then "coalesce(count( distinct #{table}.id),0) as count"
         else
           standard_full_field table, field
@@ -79,7 +79,7 @@ class Card
       end
 
       def standard_full_field table, field
-        if ATTRIBUTES[field.to_sym] == :basic
+        if Query.attributes[field.to_sym] == :basic
           "#{table}.#{field}"
         else
           safe_sql field

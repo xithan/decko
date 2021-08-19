@@ -1,5 +1,6 @@
 # -*- encoding : utf-8 -*-
-# rubocop:disable Lint/AmbiguousRegexpLiteral, Lint/Syntax
+
+# rubocop:disable Lint/AmbiguousRegexpLiteral
 
 When /I wait a sec/ do
   sleep 1
@@ -16,6 +17,8 @@ def wait_for_ajax
 end
 
 def finished_all_ajax_requests?
+  return true unless @javascript
+
   jquery_undefined? || page.evaluate_script("jQuery.active").zero?
 end
 

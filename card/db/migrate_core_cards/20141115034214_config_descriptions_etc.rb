@@ -1,8 +1,8 @@
 # -*- encoding : utf-8 -*-
 
-class ConfigDescriptionsEtc < Card::Migration::Core
+class ConfigDescriptionsEtc < Cardio::Migration::Core
   def up
-    raw_json = File.read(data_path "1.14_config_descriptions_etc.json")
+    raw_json = File.read(data_path("1.14_config_descriptions_etc.json"))
     json = JSON.parse raw_json
     Card.merge_list json["card"]["value"], output_file: "tmp/unmerged_config_text.json"
 

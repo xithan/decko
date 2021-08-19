@@ -1,16 +1,15 @@
 # -*- encoding : utf-8 -*-
 
-class ImportBootstrapLayout < Card::Migration::Core
+class ImportBootstrapLayout < Cardio::Migration::Core
   def up
     layout = Card.fetch "Default Layout"
     if layout
       layout.name = "Classic Layout"
-      layout.update_referers = true
       layout.save!
     end
 
     import_json "bootstrap_layout.json" # , pristine: true, output_file: nil
-    if layout && layout.pristine? && (all = Card[:all])
+    if layout&.pristine? && (all = Card[:all])
       layout_rule_card = all.fetch :layout
       style_rule_card  = all.fetch :style
       if layout_rule_card.pristine? && style_rule_card.pristine?
@@ -35,7 +34,6 @@ class ImportBootstrapLayout < Card::Migration::Core
     old_func = Card[:style_functional]
     old_func.name = "style: cards"
     old_func.codename = :style_cards
-    old_func.update_referers = true
     old_func.save!
 
     old_stand = Card[:style_standard]
@@ -66,7 +64,7 @@ class ImportBootstrapLayout < Card::Migration::Core
     # update layouts to have explicit views in nests
     Card.search(type_id: Card::LayoutTypeID) do |lcard|
       lcontent = Card::Content.new lcard.db_content, lcard
-      lcontent.find_chunks(Card::Content::Chunk::Nest).each do |nest|
+      lcontent.find_chunks(:Nest).each do |nest|
         nest.explicit_view =
           nest.options[:nest_name] == "_main" ? "open" : "core"
       end

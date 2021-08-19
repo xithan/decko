@@ -1,6 +1,6 @@
 # -*- encoding : utf-8 -*-
 
-class AddSharkAndHelpDeskRole < Card::Migration::Core
+class AddSharkAndHelpDeskRole < Cardio::Migration::Core
   def up
     # delete_code_card :eagle
     ensure_role "Shark", codename: "shark"
@@ -9,7 +9,7 @@ class AddSharkAndHelpDeskRole < Card::Migration::Core
     ensure_card "*account settings",
                 codename: "account_settings", type_id: Card::BasicID
 
-    update_card! "Decker Menu", name: "Shark Menu", update_referers: true
+    update_card! "Decker Menu", name: "Shark Menu"
     update_card! :ace, name: "*ace"
     update_card! "*google_analytics_key", name: "*google analytics key"
 
@@ -21,15 +21,15 @@ class AddSharkAndHelpDeskRole < Card::Migration::Core
     add_help_desk_permissions
 
     merge_cards %w[role+*type+*structure
-                administrator+dashboard administrator+description
-                shark+dashboard shark+description
-                help_desk+dashboard help_desk+description
-                anyone_signed_in+dashboard
-                *recaptcha_settings+*self+*structure
-                *account_settings+*right+*structure
-                *getting_started+shark
-                right_thin_sidebar_layout left_sidebar_layout
-                *getting_started]
+                   administrator+dashboard administrator+description
+                   shark+dashboard shark+description
+                   help_desk+dashboard help_desk+description
+                   anyone_signed_in+dashboard
+                   *recaptcha_settings+*self+*structure
+                   *account_settings+*right+*structure
+                   *getting_started+shark
+                   right_thin_sidebar_layout left_sidebar_layout
+                   *getting_started]
   end
 
   private
@@ -51,10 +51,10 @@ class AddSharkAndHelpDeskRole < Card::Migration::Core
   end
 
   def delete_self_read_permissions
-      %i[account_links signin version title].each do |n|
-        delete_card [n, :self, :read]
-      end
+    %i[account_links signin version title].each do |n|
+      delete_card [n, :self, :read]
     end
+  end
 
   def remove_redundant_permissions
     ["*account+*right+*create",
@@ -83,7 +83,7 @@ class AddSharkAndHelpDeskRole < Card::Migration::Core
     %w[Cardtype CoffeeScript CSS	HTML JavaScript	Layout SCSS	Skin].each do |name|
       ensure_cud_permissions name, :type, "Shark"
     end
-    ensure_cud_permissions :rstar, nil,"Shark"
+    ensure_cud_permissions :rstar, nil, "Shark"
   end
 
   def add_help_desk_permissions
@@ -91,7 +91,8 @@ class AddSharkAndHelpDeskRole < Card::Migration::Core
       ensure_card [name, :right, :read], "Help Desk"
     end
 
-    ["*account", "*email", "*password", "*help", "*add help", "*status", "*token"].each do |name|
+    ["*account", "*email", "*password", "*help", "*add help", "*status",
+     "*token"].each do |name|
       ensure_cud_permissions name, :right, "Help Desk"
     end
   end

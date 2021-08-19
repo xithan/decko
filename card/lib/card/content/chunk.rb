@@ -69,7 +69,7 @@ class Card
               chunk_class = const_get chunkname
               chunk_class.config[:prefix_re]
             end
-          /(?:#{ prefix_res * '|' })/m
+          /(?:#{prefix_res * '|'})/m
         end
 
         def validate_chunk_list_key chunk_list_key
@@ -83,14 +83,12 @@ class Card
       # Could really happen almost anywhere
       # (even before chunk classes are loaded).
       register_list :default, %i[
-        URI HostURI EmailURI EscapedLiteral Nest Link
+        Uri HostUri EmailUri EscapedLiteral Nest Link
       ]
       register_list :references,  %i[EscapedLiteral Nest Link]
       register_list :nest_only, [:Nest]
       register_list :query, [:QueryReference]
       register_list :stub, [:ViewStub]
-      register_list :references_keep_escaping,  %i[KeepEscapedLiteral Nest Link]
     end
   end
-  Card::Mod::Loader.load_chunks
 end

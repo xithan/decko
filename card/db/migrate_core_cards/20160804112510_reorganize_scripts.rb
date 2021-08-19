@@ -1,6 +1,6 @@
 # -*- encoding : utf-8 -*-
 
-class ReorganizeScripts < Card::Migration::Core
+class ReorganizeScripts < Cardio::Migration::Core
   def up
     create_or_update! name: "*machine cache", codename: "machine_cache"
     ensure_card name: "script: mods", type_id: Card::PointerID,
@@ -15,7 +15,7 @@ class ReorganizeScripts < Card::Migration::Core
     Card.search(type_id: Card::PointerID,
                 right: { codename: "script" },
                 link_to: "script: slot").each do |script_rule|
-      [:script_tinymce, :script_ace, :bootstrap_js].each do |codename|
+      %i[script_tinymce script_ace bootstrap_js].each do |codename|
         name = Card[codename].name
         script_rule.drop_item name
       end

@@ -53,6 +53,7 @@ class Card
       # on the persistent caches.
       def renew
         return if no_renewal
+
         renew_persistent
         cache_by_class.each_value do |cache|
           cache.soft.reset
@@ -106,7 +107,7 @@ class Card
       # (the non-standard caches)
       def reset_other
         Card::Codename.reset_cache
-        Cardio.delete_tmp_files!
+        Cardio::Utils.delete_tmp_files!
       end
 
       # generate a cache key from an object
@@ -175,7 +176,7 @@ class Card
     # test for the existence of the key in either cache
     # @return [true/false]
     def exist? key
-      @soft.exist?(key) || (@hard&.exist?(key))
+      @soft.exist?(key) || @hard&.exist?(key)
     end
   end
 end

@@ -1,6 +1,6 @@
 # -*- encoding : utf-8 -*-
 
-class UpdatePristineData < Card::Migration::Core
+class UpdatePristineData < Cardio::Migration::Core
   def up
     names = %w[
       home home+original
@@ -12,7 +12,7 @@ class UpdatePristineData < Card::Migration::Core
       full_width_layout
       *header
       cardtype+*type+*structure
-      ]
+    ]
     merge_pristine_cards names
   end
 end

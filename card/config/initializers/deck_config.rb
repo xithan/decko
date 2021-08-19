@@ -1,3 +1,3 @@
-if File.exist? 'config/deck.yml'
-  Decko.application.config.x = OpenStruct.new(Decko.application.config_for(:deck))
+if File.exist? "config/deck.yml"
+  Cardio.application.config.x = OpenStruct.new(Cardio.application.config_for(:deck))
 end

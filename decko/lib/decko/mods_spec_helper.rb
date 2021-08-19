@@ -1,9 +1,8 @@
 # -*- encoding : utf-8 -*-
-# require 'codeclimate-test-reporter'
-# CodeClimate::TestReporter.start
 
-require "decko" # only for card_gem_root
-require File.join Decko.card_gem_root, "spec/support/card_spec_loader.rb"
+require "cardio" # only for card_gem_root
+require File.join Cardio.gem_root, "spec/support/card_spec_loader.rb"
+require "simplecov"
 
 CardSpecLoader.init
 
@@ -12,7 +11,7 @@ CardSpecLoader.prefork do
     Bundler.require(:test)
     # if simplecov is activated in the Gemfile, it has to be required here
   end
-  #  CARD_TEST_SEED_PATH = File.dirname(__FILE__) + '/../fixtures'
+  #  Cardio::Seed.test_path = File.dirname(__FILE__) + '/../fixtures'
   CardSpecLoader.rspec_config
 end
 

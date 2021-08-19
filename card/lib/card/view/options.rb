@@ -30,7 +30,8 @@ class Card
           :nest_syntax,    # full nest syntax
           :wrap,           # wrap the nest with a wrapper
           :show,           # render these views when optional
-          :hide            # do not render these views when optional
+          :hide,           # do not render these views when optional
+          :unknown         # view to use if nested card is unknown
         ],                 #   show/hide can be view (Symbol), list of views (Array),
         #                      or comma separated views (String)
         # NOTE: although show and hide are in this non-inheriting group, they are
@@ -40,7 +41,7 @@ class Card
           :main,           # format object is page's "main" object (Boolean)
           :home_view,      # view for slot to return to when no view specified
           :edit_structure, # use a different structure for editing (Array)
-          :wql,            # contextual wql alterations for search cards (Hash)
+          :cql,            # contextual cql alterations for search cards (Hash)
           :action_id,      # a Card::Action id (Integer)
           :content_opts    # options for Card::Content.new
           # :context_names   # names used to contextualize titles
@@ -50,11 +51,11 @@ class Card
           :structure,      # overrides the content of the card
           :title,          # overrides the name of the card
           :variant,        # override the canonical version of the name with a different
-                           # variant
+          # variant
           :input_type,     # inline_nests makes a form within standard content (Symbol)
           :type,           # set the default type of new cards
           :size,           # set an image size
-                           # (also used for character limit in one_line_content)
+          # (also used for character limit in one_line_content)
           :params,         # parameters for add button.  deprecated!
           :items,          # options for items (Hash)
           :cache,          # change view cache behaviour
@@ -70,7 +71,7 @@ class Card
           :layout          #
         ]
       }
-      # Note: option values are strings unless otherwise noted
+      # NOTE: option values are strings unless otherwise noted
 
       class << self
         attr_reader :keymap

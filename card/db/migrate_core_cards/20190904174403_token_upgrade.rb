@@ -1,8 +1,8 @@
 # -*- encoding : utf-8 -*-
 
-class TokenUpgrade < Card::Migration::Core
+class TokenUpgrade < Cardio::Migration::Core
   def up
-    update_card! :token, name: "*api key", codename: "api_key", update_referers: true
+    update_card! :token, name: "*api key", codename: "api_key"
     delete_code_card :expiration
 
     %i[user signup].each do |type|

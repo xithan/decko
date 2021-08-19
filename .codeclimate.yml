@@ -20,21 +20,18 @@ engines:
     enabled: true
 ratings:
    paths:
-   - card/lib/**
-   - card/mod/**
-   - decko/lib/**
-   - decko/rails/**
+   - "card/{lib,mod}/**"
+   - "decko/{lib,rails}/**"
+   - "mod/**"
    - "**.rb"
 exclude_paths:
-- decko/rails/assets/**/*
-- card/mod/**/lib/javascript/*.js
-- card/mod/machines/lib/javascript/**/*
-- card/mod/machines/lib/javascript/**/*
-- card/mod/bootstrap/lib/javascript/**/*
-- card/db/**/*
-- card/doc/**
-- decko/doc/**
-- card/spec/**/*
-- decko/spec/**/*
-- card/mod/**/file/**/*
-- card/mod/**/public/**/*
+- "card/db/**/*"
+- "card/tmpsets/**/*"
+- "decko/rails/assets/**/*"
+- "decko/spec/**/*.js"
+- "doc/**/*"
+- "coverage/**/*"
+- "mod/*/{lib,assets}/{style,stylesheets}/*.css"
+- "mod/*/{lib,assets}/{script,javascript}/*.js"
+- "mod/*/{file,public,vendor}/**/*"
+

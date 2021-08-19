@@ -1,5 +1,6 @@
 # -*- encoding : utf-8 -*-
-# rubocop:disable Lint/AmbiguousRegexpLiteral, Lint/Syntax
+
+# rubocop:disable Lint/AmbiguousRegexpLiteral
 # Commonly used email steps
 #
 # To add your own steps make a custom_email_steps.rb
@@ -31,7 +32,7 @@ module EmailHelpers
     # Replace with your a way to find your current email. e.g session -> email
     # last_email_address will return the last email address used by email spec to find an email.
     # Note that last_email_address will be reset after each Scenario.
-    last_email_address || "fixthis@wagn.org"
+    last_email_address || "fixthis@decko.org"
   end
 end
 
@@ -92,7 +93,7 @@ Then /^(?:I|they) should see "([^"]*?)" in the email subject$/ do |text|
   expect(current_email).to have_subject(text)
 end
 
-Then /^(?:I|they) should see \/([^"]*?)\/ in the email subject$/ do |text|
+Then %r{^(?:I|they) should see /([^"]*?)/ in the email subject$} do |text|
   expect(current_email).to have_subject(Regexp.new(text))
 end
 
@@ -104,7 +105,7 @@ Then /^(?:I|they) should see "(.*)" in the email body$/ do |text|
   expect(current_email.text_part.body.raw_source).to include(text.to_s)
 end
 
-Then /^(?:I|they) should see \/([^\/]*?)\/ in the email body$/ do |text|
+Then %r{^(?:I|they) should see /([^/]*?)/ in the email body$} do |text|
   expect(current_email.html_part.body).to match(Regexp.new(text))
 end
 
@@ -116,7 +117,7 @@ Then /^(?:I|they) should see "([^"]*)" in the email "([^"]*?)" header$/ do |text
   expect(current_email).to have_header(name, text)
 end
 
-Then /^(?:I|they) should see \/([^\"]*)\/ in the email "([^"]*?)" header$/ do |text, name|
+Then %r{^(?:I|they) should see /([^"]*)/ in the email "([^"]*?)" header$} do |text, name|
   expect(current_email).to have_header(name, Regexp.new(text))
 end
 

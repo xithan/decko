@@ -1,6 +1,5 @@
 # -*- encoding : utf-8 -*-
 
-class CodenameFixes < Card::Migration::Core
-  def up
-  end
+class CodenameFixes < Cardio::Migration::Core
+  def up; end
 end

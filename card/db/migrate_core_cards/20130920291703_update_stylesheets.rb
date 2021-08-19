@@ -1,13 +1,11 @@
 # -*- encoding : utf-8 -*-
 
-class UpdateStylesheets < Card::Migration::Core
+class UpdateStylesheets < Cardio::Migration::Core
   def up
     dir = File.join data_path, "1.12_stylesheets"
-    %w(common traditional).each do |sheetname|
+    %w[common traditional].each do |sheetname|
       card = Card["style: #{sheetname}"]
-      if card && card.pristine?
-        card.update! content: File.read("#{dir}/#{sheetname}.scss")
-      end
+      card.update! content: File.read("#{dir}/#{sheetname}.scss") if card&.pristine?
     end
 
     if (c = Card["*all+*style+file"])

@@ -8,6 +8,7 @@ class Card
           clause.symbolize_keys!
           clause.each do |key, val|
             next if key.to_sym == :return
+
             # when return values are relative, they are relative to the name of the
             # card returned, not the context card
             clause[key] = normalize_value val
@@ -27,9 +28,9 @@ class Card
 
         def normalize_value val
           case val
-          when Integer, Float, Hash, Symbol then val
-          when String                       then normalize_string_value val
-          when Array                        then normalize_array_value val
+          when Integer, Float, Hash, Symbol, NilClass then val
+          when String                                 then normalize_string_value val
+          when Array                                  then normalize_array_value val
           else raise Error::BadQuery, "Invalid value type: #{val.class} (#{val.inspect})"
           end
         end

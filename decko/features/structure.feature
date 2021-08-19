@@ -1,13 +1,13 @@
 @javascript
 Feature: Structure Rules
   In order to have patterned content
-  As a Decker
+  As a Shark
   I want to manage structure through rules
 
   Background:
     Given I am signed in as Joe Admin
     And I create Cardtype card "Movie"
-    And I create card "Movie+*type+*structure" with content "{{+director}} {{+lead}} {{+color}}"
+    And I create RichText card "Movie+*type+*structure" with content "{{+director}} {{+lead}} {{+color}}"
     And I create Phrase card "color+*right+*default" with content "true dat"
 
   Scenario: New structured card
@@ -36,6 +36,3 @@ Feature: Structure Rules
     Given I create card "Home Movie+*right+*default" with content "Watch this"
     When I go to new Movie card named "Lew+Home Movie"
     Then I should see "Watch this" in the editor
-
-
-

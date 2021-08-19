@@ -1,40 +1,21 @@
 # -*- encoding : utf-8 -*-
 
-version = File.open(File.expand_path("../../card/VERSION", __FILE__)).read.chomp
+require "../decko_gem"
 
-vbits = version.split('.').map &:to_i
-vplus = { 0 => 90, 1 => 100 } # can remove and hardcode after 1.0
-vminor = vplus[ vbits[0] ] + vbits[1]
-card_version = [1, vminor, vbits[2]].compact.map(&:to_s).join "."
-# see card.gemspec for explanation of all of this, which has been ham-handedly
-# cut and pasted here.
+DeckoGem.gem "decko" do |s, d|
+  s.summary = "structured wiki web platform"
+  s.description =
+    "a wiki approach to structured data, dynamic interaction,  and web design"
 
+  s.files = Dir["{app,bin,lib,config,script}/**/*"]
 
-Gem::Specification.new do |s|
-  s.name          = "decko"
-  s.version       = version
-  s.authors       = ["Ethan McCutchen", "Philipp Kühl", "Lewis Hoffman", "Gerry Gleason"]
-  s.email         = ["info@decko.org"]
+  s.bindir = "bin"
+  s.executables = ["decko"]
+  s.add_runtime_dependency "actionpack", d.rails_version
+  s.add_runtime_dependency "card", d.card_version
 
-  #  s.date          = '2013-12-20'
-  s.summary       = "structured wiki web platform"
-  s.description   = "a wiki approach to stuctured data, dynamic interaction, "\
-                    " and web design"
-  s.homepage      = "http://decko.org"
-  s.licenses      = ["GPL-2.0", "GPL-3.0"]
-
-  s.files         = Dir["README.rdoc", "LICENSE", "GPL",
-                        "{app,bin,lib,rails,script}/**/*"]
-
-  s.bindir        = "bin"
-  s.executables   = ["decko"]
-  s.require_paths = ["lib"]
-
-  s.required_ruby_version = ">= 2.5"
-
-  [
-    ["card",   card_version]
-  ].each do |dep|
-    s.add_runtime_dependency(*dep)
-  end
+  # TODO: remove following.
+  # It is just a temporary fix so that old sites continue to work without having to
+  # edit their Gemfile.
+  d.depends_on_mod :defaults
 end

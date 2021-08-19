@@ -1,8 +1,9 @@
+require "coderay"
+
 %w[helper matchers].each do |load_dir|
   load_path = File.expand_path "../#{load_dir}/*.rb", __FILE__
-  Dir[load_path].each { |f| require f }
+  Dir[load_path].sort.each { |f| require f }
 end
-
 
 class Card
   # to be included in  RSpec::Core::ExampleGroup
@@ -11,17 +12,14 @@ class Card
     include EventHelper
     include SaveHelper
     include JsonHelper
+    include FileHelper
 
     # ~~~~~~~~~  HELPER METHODS ~~~~~~~~~~~~~~~#
     include Rails::Dom::Testing::Assertions::SelectorAssertions
 
     def login_as user
+      Card::Env[:session] = @request.session if @request
       Card::Auth.signin user
-      return unless @request
-      Card::Env.session[Card::Auth.session_user_key] = Card::Auth.current_id
-      @request.session[Card::Auth.session_user_key] = Card::Auth.current_id
-      # warn "(ath)login_as #{user.inspect}, #{Card::Auth.current_id}, "\
-      #      "#{@request.session[:user]}"
     end
 
     def card_subject
@@ -86,17 +84,6 @@ class Card
       SharedData::USERS.sort
     end
 
-    def bucket_credentials key
-      @buckets ||= bucket_credentials_from_yml_file || {}
-      @buckets[key]
-    end
-
-    def bucket_credentials_from_yml_file
-      yml_file = ENV["BUCKET_CREDENTIALS_PATH"] ||
-                 File.expand_path("../bucket_credentials.yml", __FILE__)
-      File.exist?(yml_file) && YAML.load_file(yml_file).deep_symbolize_keys
-    end
-
     def with_rss_enabled
       Card.config.rss_enabled = true
       yield
@@ -104,37 +91,26 @@ class Card
       Card.config.rss_enabled = false
     end
 
-    def with_params hash
-      old_params = Card::Env.params.clone
-      Card::Env.params.merge! hash
-      yield
-    ensure
-      Card::Env.params = old_params
-    end
-
     module ClassMethods
-      def check_views_for_errors *views
-        include_context_for views.flatten, "view without errors"
-      end
-
-      def check_format_for_view_errors format_module
-        check_views_for_errors(*views(format_module))
+      def check_format_for_view_errors format_sym
+        include_context_for views(format_sym).flatten, "view without errors", format_sym
       end
 
       def check_html_views_for_errors
-        html_format_class = described_class.const_get("HtmlFormat")
-        html_views = views html_format_class
+        html_views = views :html
         include_context_for html_views, "view without errors"
         include_context_for html_views, "view with valid html"
       end
 
-      def include_context_for views, context
+      def include_context_for views, context, format=:html
         views.each do |view|
-          include_context context, view
+          include_context context, view, format
         end
       end
 
-      def views format_module
+      def views format_sym
+        format_name = Card::Format.format_class_name format_sym
+        format_module = described_class.const_get(format_name)
         Card::Set::Format::AbstractFormat::ViewDefinition.views[format_module].keys
       end
     end

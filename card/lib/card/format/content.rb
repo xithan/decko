@@ -2,19 +2,17 @@ class Card
   class Format
     module Content
       def process_content override_content=nil, content_opts=nil, &block
-        content_obj = content_object override_content , content_opts
+        content_obj = content_object override_content, content_opts
         content_obj.process_chunks(&block)
         content_obj.to_s
       end
 
-      # Preserves the syntax in all nests. The content is yielded with placeholders
-      # for all nests. After executing the given block the original nests are put back in.
-      # Placeholders are numbers in double curly brackets like {{2}}.
+      # 1. Break out references (nests / links) into separate chunks
+      # 2. yields the other (non-ref) content
+      # 3. processes references
       def safe_process_content override_content=nil, content_opts=nil, &block
-        content_obj =
-          content_object override_content, chunk_list: :references_keep_escaping
-        result = content_obj.without_references(&block)
-        process_content result, content_opts
+        content_obj = content_object override_content, chunk_list: :references
+        process_content content_obj.without_references(&block), content_opts
       end
 
       # nested by another card's content
@@ -82,8 +80,6 @@ class Card
         content ||= render_raw || ""
         Card::Content.new content, self, content_opts
       end
-
-
     end
   end
 end

@@ -3,13 +3,22 @@ class Card
   module Dirty
     extend ::Card::Dirty::MethodFactory
 
-    %i[name db_content trash type_id left_id right_id codename].each do |field|
-      define_dirty_methods field
+    class << self
+      def dirty_fields
+        %i[name db_content trash type_id left_id right_id codename]
+      end
+
+      def dirty_aliases
+        { type: :type_id, content: :db_content }
+      end
+
+      def dirty_options
+        dirty_fields + dirty_aliases.keys
+      end
     end
 
-    { type: :type_id, content: :db_content }.each do |k, v|
-      alias_method "#{k}_is_changing?", "#{v}_is_changing?"
-    end
+    dirty_fields.each { |field| define_dirty_methods field }
+    dirty_aliases.each { |k, v| alias_method "#{k}_is_changing?", "#{v}_is_changing?" }
 
     def attribute_before_act attr
       if saved_change_to_attribute? attr
@@ -19,7 +28,7 @@ class Card
       elsif not_in_callback?
         attribute_was attr
       else
-        _read_attribute attr
+        _read_attribute attr.to_s
       end
     end
 
@@ -44,18 +53,28 @@ class Card
       super || left_id_is_changing? || right_id_is_changing?
     end
 
-    def name_before_last_save
-      super || dirty_name(left_id_before_last_save, right_id_before_last_save)
-    end
+    # def name_before_last_save
+    #   super || dirty_name(left_id_before_last_save, right_id_before_last_save)
+    # end
 
     def name_before_act
       super || dirty_name(left_id_before_act, right_id_before_act)
     end
 
-    def dirty_name left, right
-      return unless left.present? && right.present?
+    def dirty_name left_id, right_id
+      return unless left_id.present? && right_id.present?
 
-      Card::Name[left, right]
+      parts = [left_id, right_id].map { |id| Card.quick_fetch(id)&.name_before_act }
+
+      Card::Name[*parts]
+    end
+
+    def lex_before_act
+      if (old_left_id = left_id_before_act)
+        [old_left_id, right_id_before_act]
+      else
+        name_before_act
+      end
     end
   end
 end

@@ -8,17 +8,13 @@ class CardSpecLoader
 
     def prefork
       Spork.prefork do
-        unless ENV["RAILS_ROOT"]
-          raise Card::Error, "No RAILS_ROOT given. Can't load environment."
-        end
-        require File.join ENV["RAILS_ROOT"], "config/environment"
+        require_environment
         load_shared_examples
-        require File.expand_path("../simplecov_helper.rb", __FILE__)
-        require File.expand_path("../../../db/test_seed.rb", __FILE__)
+        require File.expand_path("../../db/test_seed.rb", __dir__)
 
         # Requires supporting ruby files with custom matchers and macros, etc,
         # in spec/support/ and its subdirectories.
-        Dir[File.join(Cardio.gem_root, "spec/support/matchers/*.rb")].each do |f|
+        Dir[File.join(Cardio.gem_root, "spec/support/matchers/*.rb")].sort.each do |f|
           require f
         end
         yield if block_given?
@@ -30,10 +26,13 @@ class CardSpecLoader
       yield if block_given?
     end
 
+    def joe_user_id
+      @joe_user_id ||= "joe_user".card_id
+    end
+
     def rspec_config
       require "rspec/rails"
 
-      @@joe_user_id = Card["joe_user"].id
       RSpec.configure do |config|
         config.include RSpec::Rails::Matchers::RoutingMatchers,
                        file_path: %r{\bspec/controllers/}
@@ -43,80 +42,98 @@ class CardSpecLoader
         # config.default_formatter=formatter
 
         config.infer_spec_type_from_file_location!
-        # config.include CustomMatchers
-        # config.include ControllerMacros, type: :controllers
-
-        # == Mock Framework
-        # If you prefer to mock with mocha, flexmock or RR,
-        # uncomment the appropriate symbol:
-        # :mocha, :flexmock, :rr
-
         config.use_transactional_fixtures = true
         config.use_instantiated_fixtures = false
 
-        config.before(:each) do |example|
-          Delayed::Worker.delay_jobs = false
-          unless example.metadata[:as_bot]
-            user_id =
-              case example.metadata[:with_user]
-              when String
-                Card.fetch_id example.metadata[:with_user]
-              when Card
-                Card.id
-              when Integer
-                example.metadata[:with_user]
-              else
-                @@joe_user_id
-              end
-            Card::Auth.signin user_id
-          end
-
-          if example.metadata[:output_length]
-            RSpec::Support::ObjectFormatter.default_instance.max_formatted_output_length =
-              example.metadata[:output_length]
-          end
-          Card::Cache.restore
-          Card::Env.reset
-          Card::Env[:params] = example.metadata[:params] if example.metadata[:params]
-        end
-
-        config.around(:example, :as_bot) do |example|
-          Card::Auth.signin @@joe_user_id
-          Card::Auth.as_bot do
-            example.run
-          end
-        end
-
-        config.after(:each) do
-          Timecop.return
-        end
+        CardSpecLoader.wrap_config config
         yield config if block_given?
-
-        # # only needed for < 3.5.0
-        # [:controller, :view, :request].each do |type|
-        #   config.include ::Rails::Controller::Testing::TestProcess, :type => type
-        #   config.include ::Rails::Controller::Testing::TemplateAssertions, :type => type
-        #   config.include ::Rails::Controller::Testing::Integration, :type => type
-        # end
       end
+    end
+
+    def example_signin metadata
+      Card::Auth.signin example_user_id(metadata[:with_user]) unless metadata[:as_bot]
+    end
+
+    def example_user_id with_user
+      case with_user
+      when String
+        with_user.card_id
+      when Card
+        with_user.id
+      when Integer
+        with_user
+      else
+        joe_user_id
+      end
+    end
+
+    def wrap_config config
+      before_config config
+      around_config config
+      after_config config
+    end
+
+    def before_config config
+      config.before do |example|
+        metadata = example.metadata
+        Cardio.delaying! :off
+        CardSpecLoader.example_signin metadata
+        CardSpecLoader.output_length metadata[:output_length]
+
+        Card::Cache.restore
+        Card::Env.reset
+        Card::Env[:params] = metadata[:params] if metadata[:params]
+      end
+    end
+
+    def output_length num
+      return unless num
+
+      RSpec::Support::ObjectFormatter.default_instance.max_formatted_output_length = num
+    end
+
+    def around_config config
+      config.around :example, :as_bot do |example|
+        Card::Auth.signin CardSpecLoader.joe_user_id
+        Card::Auth.as_bot { example.run }
+      end
+    end
+
+    def after_config config
+      config.after { Timecop.return }
     end
 
     def helper
-      require File.expand_path "../card_spec_helper.rb", __FILE__
-      RSpec::Core::ExampleGroup.send :include, Card::SpecHelper
-      RSpec::Core::ExampleGroup.send :extend, Card::SpecHelper::ClassMethods
-      Card.send :include, Card::SpecHelper::CardHelper
-      Card.send :include, Card::SpecHelper::SetHelper
-      Card.send :extend, Card::SpecHelper::CardHelper::ClassMethods
+      require File.expand_path "card_spec_helper.rb", __dir__
+      RSpec::Core::ExampleGroup.include Card::SpecHelper
+      RSpec::Core::ExampleGroup.extend Card::SpecHelper::ClassMethods
+      Card.include Card::SpecHelper::CardHelper
+      Card.include Card::SpecHelper::SetHelper
+      Card.extend Card::SpecHelper::CardHelper::ClassMethods
     end
 
     def load_shared_examples
-      require File.expand_path "../card_shared_examples", __FILE__
+      require File.expand_path "card_shared_examples", __dir__
       %w[shared_examples shared_context].each do |dirname|
-        Card::Mod.dirs.each "spec/#{dirname}" do |shared_ex_dir|
+        Cardio::Mod.dirs.each "spec/#{dirname}" do |shared_ex_dir|
           Dir["#{shared_ex_dir}/**/*.rb"].sort.each { |f| require f }
         end
       end
+    end
+
+    def deck_root
+      root = ENV["DECK_ROOT"] || ENV["RAILS_ROOT"] || ENV["PWD"]
+      raise StandardError, "No DECK_ROOT given. Can't load environment." unless root
+      root
+    end
+
+    def require_environment
+      path = File.join deck_root, "config/environment.rb"
+      unless File.exist? path
+        raise StandardError, "Cannot find config/environment.rb in #{path}." \
+          "run rspec from deck root or use DECK_ROOT environmental variable."
+      end
+      require path
     end
   end
 end
