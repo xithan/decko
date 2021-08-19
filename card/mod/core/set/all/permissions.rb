@@ -32,15 +32,6 @@ def ok? action
   end
 end
 
-# def ok_with_fetch? action, opts={}
-#   trait = opts.delete :trait
-#   card = trait.nil? ? self : fetch(trait, opts)
-#   card&.ok_without_fetch? action
-# end
-
-# note: method is chained so that we can return the instance variable @action_ok
-# alias_method_chain :ok?, :fetch
-
 def ok! action
   raise Card::Error::PermissionDenied, self unless ok? action
 end
@@ -56,28 +47,19 @@ end
 def direct_rule_card action
   direct_rule_id = rule_card_id action
   require_permission_rule! direct_rule_id, action
-  Card.fetch direct_rule_id, skip_modules: true
+  Card.quick_fetch direct_rule_id
 end
 
 def permission_rule_id action
-  direct_rule = direct_rule_card action
-  applicable_permission_rule_id direct_rule, action
+  if junction? && rule(action).match?(/^\[?\[?_left\]?\]?$/)
+    left_permission_rule_id action
+  else
+    rule_card_id(action)
+  end
 end
 
 def permission_rule_id_and_class action
-  direct_rule = direct_rule_card action
-  [
-    applicable_permission_rule_id(direct_rule, action),
-    direct_rule.rule_class_name
-  ]
-end
-
-def applicable_permission_rule_id direct_rule, action
-  if junction? && direct_rule.db_content =~ /^\[?\[?_left\]?\]?$/
-    left_permission_rule_id action
-  else
-    direct_rule.id
-  end
+  [permission_rule_id(action), direct_rule_card(action).rule_class_name]
 end
 
 def left_permission_rule_id action
@@ -152,8 +134,10 @@ end
 
 def ok_to_read
   return true if Auth.always_ok?
-  @read_rule_id ||= permission_rule_id(:read)
-  return true if Auth.as_card.read_rules.member? @read_rule_id
+
+  self.read_rule_id ||= permission_rule_id :read
+  return true if Auth.as_card.read_rules_hash[read_rule_id]
+
   deny_because you_cant "read this"
 end
 
